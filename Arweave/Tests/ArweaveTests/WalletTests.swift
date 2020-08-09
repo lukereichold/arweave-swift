@@ -30,11 +30,7 @@ final class WalletTests: XCTestCase {
         var balance: Amount?
         
         WalletTests.wallet?.balance { result in
-            switch result {
-            case .success(let amount):
-                balance = amount
-            default: break
-            }
+            balance = try? result.get()
             expectation.fulfill()
         }
         
@@ -44,18 +40,14 @@ final class WalletTests: XCTestCase {
     
     func testFetchLastTransactionId() {
         let expectation = self.expectation(description: "Fetch last transaction ID for wallet")
-        var lastTxId = ""
+        var lastTxId: String?
         
         WalletTests.wallet?.lastTransactionId { result in
-            switch result {
-            case .success(let txId):
-                lastTxId = txId
-            default: break
-            }
+            lastTxId = try? result.get()
             expectation.fulfill()
         }
         waitForExpectations(timeout: 20, handler: nil)
-        XCTAssertNotEqual(lastTxId, "")
+        XCTAssertNotNil(lastTxId)
     }
     
     static var allTests = [

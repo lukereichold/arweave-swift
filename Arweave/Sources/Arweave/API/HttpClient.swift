@@ -5,12 +5,12 @@ extension String: Error { }
 
 struct HttpClient {
     static let provider = MoyaProvider<API>()
-    
-    static func request(target: API,
+
+    static func request(_ target: API,
                         success successCallback: @escaping (Response) -> Void,
                         error errorCallback: @escaping (Swift.Error) -> Void) {
-        
-        provider.request(target) { (result) in
+
+        provider.request(target) { result in
             switch result {
             case .success(let moyaResponse):
                 do {

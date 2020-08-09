@@ -1,7 +1,12 @@
 import Foundation
 import Moya
 
-enum API {
+struct API {
+    static var host: URL?
+    let route: Route
+}
+
+enum Route {
     case txAnchor
     case transaction(id: TransactionId)
     case transactionData(id: TransactionId)
@@ -14,11 +19,11 @@ enum API {
 
 extension API: TargetType {
     var baseURL: URL {
-        URL(string: "https://arweave.net")!
+        API.host ?? URL(string: "https://arweave.net")!
     }
     
     var path: String {
-        switch self {
+        switch route {
         case .txAnchor:
             return "/tx_anchor"
         case let .transaction(id):
@@ -39,7 +44,7 @@ extension API: TargetType {
     }
     
     var method: Moya.Method {
-        if case API.commit = self {
+        if case Route.commit = route {
             return .post
         } else {
             return .get
@@ -49,7 +54,7 @@ extension API: TargetType {
     var sampleData: Data { Data() }
     
     var task: Task {
-        if case let API.commit(transaction) = self {
+        if case let Route.commit(transaction) = route {
             return .requestJSONEncodable(transaction)
         } else {
             return .requestPlain
@@ -57,6 +62,6 @@ extension API: TargetType {
     }
     
     var headers: [String: String]? {
-        return ["Content-type": "application/json"]
+        ["Content-type": "application/json"]
     }
 }

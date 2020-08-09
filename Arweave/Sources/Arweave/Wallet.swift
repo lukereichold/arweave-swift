@@ -14,9 +14,10 @@ public struct Wallet {
     }
     
     func balance(completion: @escaping (Result<Amount, Error>) -> Void) {
-        HttpClient.request(target: .walletBalance(walletAddress: address)) { response in
+        let target = API(route: .walletBalance(walletAddress: address))
+        HttpClient.request(target) { response in
             guard let balance = try? response.map(Double.self) else {
-                completion(.failure("Invalid response type in: \(#function)"))
+                completion(.failure("Unexpected response type in: \(#function)"))
                 return
             }
             let amount = Amount(value: balance, unit: .winston)
@@ -27,9 +28,10 @@ public struct Wallet {
     }
     
     func lastTransactionId(completion: @escaping (Result<TransactionId, Error>) -> Void) {
-        HttpClient.request(target: .lastTransactionId(walletAddress: address)) { response in
+        let target = API(route: .lastTransactionId(walletAddress: address))
+        HttpClient.request(target) { response in
             guard let lastTx = try? response.mapString() else {
-                completion(.failure("Invalid response type in: \(#function)"))
+                completion(.failure("Unexpected response type in: \(#function)"))
                 return
             }
             completion(.success(lastTx))

@@ -49,9 +49,32 @@ final class WalletTests: XCTestCase {
         waitForExpectations(timeout: 20, handler: nil)
         XCTAssertNotNil(lastTxId)
     }
+
+    func testUseCustomClientNode() {
+        var actualHost: String?
+        var actualScheme: String?
+        let expectedScheme = "https"
+        let expectedHost = "arweave.net"
+        let expectation = self.expectation(description: "HTTP request uses custom host")
+
+        API.host = URL(string: "\(expectedScheme)://\(expectedHost)")
+        let target = API(route: .walletBalance(walletAddress: WalletTests.walletAddress))
+        HttpClient.request(target) { response in
+            actualHost = response.request?.url?.host
+            actualScheme = response.request?.url?.scheme
+            expectation.fulfill()
+        } error: { error in
+            expectation.fulfill()
+        }
+
+        waitForExpectations(timeout: 20, handler: nil)
+        XCTAssertEqual(actualHost, expectedHost)
+        XCTAssertEqual(actualScheme, expectedScheme)
+    }
     
     static var allTests = [
         ("testCheckWalletBalance", testCheckWalletBalance),
         ("testFetchLastTransactionId", testFetchLastTransactionId),
+        ("testUseCustomClientNode", testUseCustomClientNode),
     ]
 }

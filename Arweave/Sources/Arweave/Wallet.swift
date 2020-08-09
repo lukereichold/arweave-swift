@@ -39,7 +39,7 @@ public struct Wallet {
     }
 }
 
-struct Address {
+struct Address: Equatable {
     let address: String
 }
 

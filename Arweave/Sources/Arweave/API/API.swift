@@ -13,7 +13,7 @@ enum Route {
     case transactionStatus(id: TransactionId)
     case lastTransactionId(walletAddress: Address)
     case walletBalance(walletAddress: Address)
-    case reward(byteSize: Int, address: Address)
+    case reward(request: Transaction.PriceRequest)
     case commit(transaction: Transaction)
 }
 
@@ -36,8 +36,12 @@ extension API: TargetType {
             return "/wallet/\(walletAddress)/last_tx"
         case let .walletBalance(walletAddress):
             return "/wallet/\(walletAddress)/balance"
-        case let .reward(byteSize, address):
-            return "/price/\(byteSize)/\(address)"
+        case let .reward(request):
+            var path = "/price/\(String(request.bytes))"
+            if let target = request.target {
+                path.append("/\(target.address)")
+            }
+            return path
         case .commit:
             return "/tx"
         }

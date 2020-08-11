@@ -5,8 +5,8 @@ typealias Base64EncodedString = String
 
 extension Transaction {
     struct PriceRequest {
-        let bytes: Int = 0
-        let target: Address?
+        var bytes: Int = 0
+        var target: Address? = nil
     }
 }
 
@@ -79,6 +79,22 @@ extension Transaction {
             }
 
             completion(.success(status))
+        } error: { error in
+            completion(.failure(error))
+        }
+    }
+
+    static func price(for request: Transaction.PriceRequest,
+                      completion: @escaping Response<Amount>) {
+
+        let target = API(route: .reward(request))
+        HttpClient.request(target) { response in
+            guard let cost = try? response.map(Double.self) else {
+                completion(.failure("Unexpected response type in: \(#function)"))
+                return
+            }
+            let price = Amount(value: cost, unit: .winston)
+            completion(.success(price))
         } error: { error in
             completion(.failure(error))
         }

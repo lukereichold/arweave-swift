@@ -67,6 +67,21 @@ final class TransactionTests: XCTestCase {
         }
     }
 
+    func testFetchPriceForDataPayload() throws {
+        let expectation = self.expectation(description: "Fetch transaction data for ID")
+        var cost: Amount?
+
+        let req = Transaction.PriceRequest(bytes: 1200)
+        Transaction.price(for: req) { result in
+            cost = try? result.get()
+            expectation.fulfill()
+        }
+
+        waitForExpectations(timeout: 20, handler: nil)
+        let price = try XCTUnwrap(cost)
+        XCTAssert(price.value > 0)
+    }
+
     static var allTests = [
         ("testFindTransaction", testFindTransaction),
         ("testFetchDataForTransactionId", testFetchDataForTransactionId),

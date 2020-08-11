@@ -13,8 +13,8 @@ enum Route {
     case transactionStatus(id: TransactionId)
     case lastTransactionId(walletAddress: Address)
     case walletBalance(walletAddress: Address)
-    case reward(request: Transaction.PriceRequest)
-    case commit(transaction: Transaction)
+    case reward(Transaction.PriceRequest)
+    case commit(Transaction)
 }
 
 extension API: TargetType {

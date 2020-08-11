@@ -82,10 +82,32 @@ final class TransactionTests: XCTestCase {
         XCTAssert(price.value > 0)
     }
 
+    func testCreateNewDataTransaction() {
+        let data = "<h1>Hello World!</h1>".data(using: .utf8)!
+        let expectedBase64UrlEncodedString = "PGgxPkhlbGxvIFdvcmxkITwvaDE-"
+
+        let transaction = Transaction(data: data)
+
+        XCTAssertEqual(transaction.data, expectedBase64UrlEncodedString)
+    }
+
+    func testCreateNewWalletToWalletTransaction() {
+        let targetAddress = Address(address: "someOtherWalletAddress")
+        let transferAmount = Amount(value: 500, unit: .winston)
+
+        let transaction = Transaction(amount: transferAmount, target: targetAddress)
+
+        XCTAssertEqual(transaction.quantity, "500")
+        XCTAssertEqual(transaction.target, "someOtherWalletAddress")
+    }
+
     static var allTests = [
         ("testFindTransaction", testFindTransaction),
         ("testFetchDataForTransactionId", testFetchDataForTransactionId),
         ("testFetchTransactionStatus_AcceptedTx", testFetchTransactionStatus_AcceptedTx),
         ("testFetchTransactionStatus_InvalidTx", testFetchTransactionStatus_InvalidTx),
+        ("testFetchPriceForDataPayload", testFetchPriceForDataPayload),
+        ("testCreateNewDataTransaction", testCreateNewDataTransaction),
+        ("testCreateNewWalletToWalletTransaction", testCreateNewWalletToWalletTransaction),
     ]
 }

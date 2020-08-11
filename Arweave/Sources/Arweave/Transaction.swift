@@ -11,20 +11,34 @@ extension Transaction {
 }
 
 struct Transaction: Codable {
-    let id: TransactionId
-    let last_tx: TransactionId
-    let owner: String
-    let tags: [Tag]
-    let target: String
-    let quantity: String
-    let data: String
-    let reward: String
-    let signature: String
+    var id: TransactionId = ""
+    var last_tx: TransactionId = ""
+    var owner: String = ""
+    var tags = [Tag]()
+    var target: String = ""
+    var quantity: String = ""
+    var data: String = ""
+    var reward: String = ""
+    var signature: String = ""
 
     struct Tag: Codable {
         let name: String
         let value: String
     }
+}
+
+extension Transaction {
+    init(data: Data) {
+        self.data = data.base64URLEncodedString()
+    }
+    init(amount: Amount, target: Address) {
+        self.quantity = String(format: "%.f", amount.value)
+        self.target = target.address
+    }
+}
+
+extension LosslessStringConvertible {
+    var string: String { .init(self) }
 }
 
 extension Transaction {

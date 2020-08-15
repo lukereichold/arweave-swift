@@ -7,22 +7,22 @@ struct HttpClient {
     static let provider = MoyaProvider<API>()
 
     static func request(_ target: API,
+                        callbackQueue: DispatchQueue? = .none,
                         shouldFilterStatusCodes: Bool = true,
-                        success successCallback: @escaping (Response) -> Void,
-                        error errorCallback: @escaping (Swift.Error) -> Void) {
+                        completion: @escaping (Result<Response, Error>) -> Void) {
 
-        provider.request(target) { result in
+        provider.request(target, callbackQueue: callbackQueue) { result in
             switch result {
             case .success(let moyaResponse):
                 do {
                     let response = shouldFilterStatusCodes ? try moyaResponse.filterSuccessfulStatusCodes() : moyaResponse
-                    successCallback(response)
+                    completion(.success(response))
                 } catch {
                     let error = NSError(domain: "com.arweave.sdk", code: 0, userInfo: [NSLocalizedDescriptionKey: "Bad response code: \(moyaResponse.statusCode)"])
-                    errorCallback(error)
+                    completion(.failure(error))
                 }
             case .failure(let error):
-                errorCallback(error)
+                completion(.failure(error))
             }
         }
     }

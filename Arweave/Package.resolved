@@ -6,17 +6,17 @@
         "repositoryURL": "https://github.com/Alamofire/Alamofire.git",
         "state": {
           "branch": null,
-          "revision": "2777659076fda38bd4e487739ee331c7a65b5924",
-          "version": "5.2.1"
+          "revision": "becd9a729a37bdbef5bc39dc3c702b99f9e3d046",
+          "version": "5.2.2"
         }
       },
       {
         "package": "JOSESwift",
-        "repositoryURL": "https://github.com/airsidemobile/JOSESwift.git",
+        "repositoryURL": "https://github.com/lukereichold/JOSESwift.git",
         "state": {
-          "branch": null,
-          "revision": "b5d78b872dc9a7bcf29e9a6bb2d70b5bf51ebd3c",
-          "version": "2.2.1"
+          "branch": "master",
+          "revision": "3b8b9d0d121d0021eaac78d5c32a070bcda40776",
+          "version": null
         }
       },
       {

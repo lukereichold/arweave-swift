@@ -4,6 +4,20 @@ import XCTest
 final class TransactionTests: XCTestCase {
 
     let exampleTxId = "FVUCtTss3ehEVwRf8AlkvBb_wnN3leKw-K7wT5vHfic"
+    static var wallet: Wallet?
+
+    class func initWalletFromKeyfile() {
+        guard let keyData = WalletTests.keyData() else { return }
+
+        TransactionTests.wallet = Wallet(jwkFileData: keyData)
+
+        XCTAssertNotNil(TransactionTests.wallet)
+    }
+
+    override class func setUp() {
+        super.setUp()
+        TransactionTests.initWalletFromKeyfile()
+    }
 
     func testFindTransaction() {
         let expectation = self.expectation(description: "Find transaction with ID")
@@ -101,6 +115,28 @@ final class TransactionTests: XCTestCase {
         XCTAssertEqual(transaction.target, "someOtherWalletAddress")
     }
 
+    func testFetchAnchor() {
+        let expectation = self.expectation(description: "Fetch network anchor")
+        var lastTx: TransactionId?
+
+        Transaction.anchor() { result in
+            lastTx = try? result.get()
+            expectation.fulfill()
+        }
+
+        waitForExpectations(timeout: 20, handler: nil)
+        XCTAssertNotNil(lastTx)
+    }
+
+    func testSignTransaction_SetsAnchor() throws {
+        let simpleData = try XCTUnwrap("Arweave".data(using: .utf8))
+        let transaction = Transaction(data: simpleData)
+        let wallet = try XCTUnwrap(TransactionTests.wallet)
+
+        let lastTx = try transaction.sign(with: wallet).last_tx
+        XCTAssertNotNil(lastTx)
+    }
+
     static var allTests = [
         ("testFindTransaction", testFindTransaction),
         ("testFetchDataForTransactionId", testFetchDataForTransactionId),
@@ -109,5 +145,7 @@ final class TransactionTests: XCTestCase {
         ("testFetchPriceForDataPayload", testFetchPriceForDataPayload),
         ("testCreateNewDataTransaction", testCreateNewDataTransaction),
         ("testCreateNewWalletToWalletTransaction", testCreateNewWalletToWalletTransaction),
+        ("testFetchAnchor", testFetchAnchor),
+        ("testSignTransaction_SetsAnchor", testSignTransaction_SetsAnchor),
     ]
 }

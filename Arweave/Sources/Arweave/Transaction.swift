@@ -1,4 +1,5 @@
 import Foundation
+import CryptoKit
 
 typealias TransactionId = String
 typealias Base64EncodedString = String
@@ -25,38 +26,98 @@ struct Transaction: Codable {
         let name: String
         let value: String
     }
+
+    var priceRequest: PriceRequest {
+        PriceRequest(bytes: data.utf8.count,
+                     target: Address(address: target))
+    }
 }
+
+let queue = DispatchQueue(label: "com.reikam.arweave", attributes: .concurrent)
 
 extension Transaction {
     init(data: Data) {
         self.data = data.base64URLEncodedString()
     }
+
     init(amount: Amount, target: Address) {
-        self.quantity = String(format: "%.f", amount.value)
+        self.quantity = amount.string
         self.target = target.address
     }
-}
 
-extension LosslessStringConvertible {
-    var string: String { .init(self) }
+    func sign(with wallet: Wallet) throws -> Transaction {
+        var tx = self
+
+        let dispatchGroup = DispatchGroup()
+
+        dispatchGroup.enter()
+        Transaction.anchor() { result in
+            tx.last_tx = (try? result.get()) ?? ""
+            dispatchGroup.leave()
+        }
+
+        dispatchGroup.enter()
+        Transaction.price(for: self.priceRequest) { result in
+            tx.reward = (try? result.get().string) ?? ""
+            dispatchGroup.leave()
+        }
+
+        dispatchGroup.wait()
+
+        let signedMessage = try wallet.sign(self.signatureBody())
+        tx.signature = signedMessage.base64URLEncodedString()
+        tx.id = SHA256.hash(data: signedMessage).data
+            .base64URLEncodedString()
+        tx.owner = wallet.address.description
+        return tx
+    }
+
+    func commit(completion: @escaping Response<Bool>) {
+        guard !signature.isEmpty else {
+            completion(.failure("Missing signature value on transction."))
+            return
+        }
+
+        HttpClient.request(API(route: .commit(self))) { result in
+            guard let tx = try? result.get(), tx.statusCode == 200 else {
+                completion(.failure("Failed to submit transaction."))
+                return
+            }
+            completion(.success(true))
+        }
+    }
+
+    private func signatureBody() -> Data {
+        let tagsString = tags.reduce(into: "") { str, tag in
+            str += tag.name.base64URLEncoded
+            str += tag.value.base64URLEncoded
+        }
+        return [
+            owner.base64URLEncoded,
+            target.base64URLEncoded,
+            data.base64URLEncoded,
+            quantity,
+            reward,
+            last_tx.base64URLEncoded,
+            tagsString
+            ].joined().data(using: .utf8) ?? Data()
+    }
 }
 
 extension Transaction {
 
-    typealias Response<T> = (Result<T, Error>) -> Void
+    typealias Response<T> = (Swift.Result<T, Error>) -> Void
 
     static func find(with txId: TransactionId,
                      completion: @escaping Response<Transaction>) {
 
         let target = API(route: .transaction(id: txId))
-        HttpClient.request(target) { response in
-            guard let tx = try? response.map(Transaction.self) else {
+        HttpClient.request(target) { result in
+            guard let tx = try? result.get().map(Transaction.self) else {
                 completion(.failure("Unexpected response type in: \(#function)"))
                 return
             }
             completion(.success(tx))
-        } error: { error in
-            completion(.failure(error))
         }
     }
 
@@ -64,14 +125,12 @@ extension Transaction {
                      completion: @escaping Response<Base64EncodedString>) {
 
         let target = API(route: .transactionData(id: txId))
-        HttpClient.request(target) { response in
-            guard let txData = try? response.mapString() else {
+        HttpClient.request(target) { result in
+            guard let txData = try? result.get().mapString() else {
                 completion(.failure("Unexpected response type in: \(#function)"))
                 return
             }
             completion(.success(txData))
-        } error: { error in
-            completion(.failure(error))
         }
     }
 
@@ -79,7 +138,11 @@ extension Transaction {
                        completion: @escaping Response<Transaction.Status>) {
 
         let target = API(route: .transactionStatus(id: txId))
-        HttpClient.request(target, shouldFilterStatusCodes: false) { response in
+        HttpClient.request(target, shouldFilterStatusCodes: false) { result in
+            guard let response = try? result.get() else {
+                completion(.failure("Networking Error"))
+                return
+            }
 
             var status: Transaction.Status
             if response.statusCode == 200 {
@@ -91,10 +154,7 @@ extension Transaction {
             } else {
                 status = Transaction.Status(rawValue: .status(response.statusCode))!
             }
-
             completion(.success(status))
-        } error: { error in
-            completion(.failure(error))
         }
     }
 
@@ -102,16 +162,23 @@ extension Transaction {
                       completion: @escaping Response<Amount>) {
 
         let target = API(route: .reward(request))
-        HttpClient.request(target) { response in
-            guard let cost = try? response.map(Double.self) else {
+        HttpClient.request(target, callbackQueue: queue) { result in
+            guard let cost = try? result.get().map(Double.self) else {
                 completion(.failure("Unexpected response type in: \(#function)"))
                 return
             }
             let price = Amount(value: cost, unit: .winston)
             completion(.success(price))
-        } error: { error in
-            completion(.failure(error))
         }
     }
 
+    static func anchor(completion: @escaping Response<String>) {
+        HttpClient.request(API(route: .txAnchor), callbackQueue: queue) { result in
+            guard let anchor = try? result.get().mapString() else {
+                completion(.failure("Unexpected response type in: \(#function)"))
+                return
+            }
+            completion(.success(anchor))
+        }
+    }
 }

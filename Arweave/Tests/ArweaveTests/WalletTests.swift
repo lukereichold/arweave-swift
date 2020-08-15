@@ -70,6 +70,7 @@ final class WalletTests: XCTestCase {
         ("testCheckWalletBalance", testCheckWalletBalance),
         ("testFetchLastTransactionId", testFetchLastTransactionId),
         ("testUseCustomClientNode", testUseCustomClientNode),
+        ("testWinstonToARConversion", testWinstonToARConversion),
     ]
 }
 

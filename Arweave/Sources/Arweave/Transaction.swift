@@ -33,7 +33,7 @@ struct Transaction: Codable {
     }
 }
 
-let queue = DispatchQueue(label: "com.reikam.arweave", attributes: .concurrent)
+let queue = DispatchQueue(label: "com.arweave.sdk", attributes: .concurrent)
 
 extension Transaction {
     init(data: Data) {

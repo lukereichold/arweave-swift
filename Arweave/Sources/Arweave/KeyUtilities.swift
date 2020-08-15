@@ -5,3 +5,9 @@ extension Digest {
     var bytes: [UInt8] { Array(makeIterator()) }
     var data: Data { Data(bytes) }
 }
+
+extension String {
+    var base64URLEncoded: String {
+        Data(utf8).base64URLEncodedString()
+    }
+}

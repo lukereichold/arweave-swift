@@ -68,7 +68,7 @@ extension Transaction {
         tx.signature = signedMessage.base64URLEncodedString()
         tx.id = SHA256.hash(data: signedMessage).data
             .base64URLEncodedString()
-        tx.owner = wallet.address.description
+        tx.owner = wallet.ownerModulus
         return tx
     }
 

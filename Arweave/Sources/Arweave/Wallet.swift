@@ -5,11 +5,13 @@ import CryptoKit
 public struct Wallet {
 
     let key: RSAPrivateKey
+    var ownerModulus: String
     var address: Address
 
     public init?(jwkFileData: Data) {
         guard let jwk = try? RSAPrivateKey(data: jwkFileData) else { return nil }
         key = jwk
+        ownerModulus = key.modulus
         address = Address(from: key.modulus)
     }
     

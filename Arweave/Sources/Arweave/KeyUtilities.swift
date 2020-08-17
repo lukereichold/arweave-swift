@@ -11,3 +11,9 @@ extension String {
         Data(utf8).base64URLEncodedString()
     }
 }
+
+extension Array where Element == Data {
+    var combined: Data {
+       reduce(.init(), +)
+    }
+}

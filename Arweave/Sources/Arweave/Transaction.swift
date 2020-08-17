@@ -64,11 +64,11 @@ extension Transaction {
 
         dispatchGroup.wait()
 
-        let signedMessage = try wallet.sign(self.signatureBody())
+        tx.owner = wallet.ownerModulus
+        let signedMessage = try wallet.sign(tx.signatureBody())
         tx.signature = signedMessage.base64URLEncodedString()
         tx.id = SHA256.hash(data: signedMessage).data
             .base64URLEncodedString()
-        tx.owner = wallet.ownerModulus
         return tx
     }
 
@@ -89,18 +89,21 @@ extension Transaction {
 
     private func signatureBody() -> Data {
         let tagsString = tags.reduce(into: "") { str, tag in
-            str += tag.name.base64URLEncoded
-            str += tag.value.base64URLEncoded
+            str += tag.name
+            str += tag.value
         }
+
         return [
-            owner.base64URLEncoded,
-            target.base64URLEncoded,
-            data.base64URLEncoded,
-            quantity,
-            reward,
-            last_tx.base64URLEncoded,
-            tagsString
-            ].joined().data(using: .utf8) ?? Data()
+            Data(base64URLEncoded: owner),
+            Data(base64URLEncoded: target),
+            Data(base64URLEncoded: data),
+            quantity.data(using: .utf8),
+            reward.data(using: .utf8),
+            Data(base64URLEncoded: last_tx),
+            tagsString.data(using: .utf8)
+        ]
+        .compactMap { $0 }
+        .combined
     }
 }
 

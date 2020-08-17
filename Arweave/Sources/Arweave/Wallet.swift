@@ -37,6 +37,20 @@ public struct Wallet {
             completion(.success(lastTx))
         }
     }
+
+    func sign(_ message: Data) throws -> Data {
+        let privateKey: SecKey = try key.converted(to: SecKey.self)
+
+        let algorithm: SecKeyAlgorithm = .rsaSignatureMessagePSSSHA256
+        var error: Unmanaged<CFError>?
+        guard let signature = SecKeyCreateSignature(privateKey,
+                                                    algorithm,
+                                                    message as CFData,
+                                                    &error) as Data? else {
+                                                        throw error!.takeRetainedValue() as Error
+        }
+        return signature
+    }
 }
 
 struct Address: Equatable {
@@ -68,6 +82,7 @@ final class ARUnit: Dimension {
 
 extension Amount {
     var string: String {
-        String(format: "%.f", value)
+        let value = converted(to: .winston).value
+        return String(format: "%.f", value)
     }
 }

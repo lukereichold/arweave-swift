@@ -137,6 +137,28 @@ final class TransactionTests: XCTestCase {
         XCTAssertNotNil(lastTx)
     }
 
+    func testSubmitWalletToWalletTransaction() throws {
+        let targetAddress = Address(address: "QplJv7rsWFH79ianupIhm0HxVggS93GiDpiJFmS86-s")
+        let transferAmount = Amount(value: 0.3, unit: .AR)
+        let transaction = Transaction(amount: transferAmount, target: targetAddress)
+
+        let expectation = self.expectation(description: "Test submitting wallet-to-wallet transaction.")
+        let wallet = try XCTUnwrap(TransactionTests.wallet)
+        var txWasSuccessful: Bool?
+
+        let signed = try transaction.sign(with: wallet)
+
+        XCTAssertEqual(signed.quantity, "300000000000")
+
+        signed.commit { committedTxResult in
+            txWasSuccessful = try? committedTxResult.get()
+            expectation.fulfill()
+        }
+
+        waitForExpectations(timeout: 20, handler: nil)
+        XCTAssertNotNil(txWasSuccessful)
+    }
+
     static var allTests = [
         ("testFindTransaction", testFindTransaction),
         ("testFetchDataForTransactionId", testFetchDataForTransactionId),
@@ -147,5 +169,6 @@ final class TransactionTests: XCTestCase {
         ("testCreateNewWalletToWalletTransaction", testCreateNewWalletToWalletTransaction),
         ("testFetchAnchor", testFetchAnchor),
         ("testSignTransaction_SetsAnchor", testSignTransaction_SetsAnchor),
+        ("testSubmitWalletToWalletTransaction", testSubmitWalletToWalletTransaction),
     ]
 }

@@ -1,4 +1,5 @@
 import XCTest
+import CryptoKit
 @testable import Arweave
 
 final class WalletTests: XCTestCase {
@@ -65,11 +66,31 @@ final class WalletTests: XCTestCase {
         XCTAssertEqual(actualHost, expectedHost)
         XCTAssertEqual(actualScheme, expectedScheme)
     }
+
+    func testSignMessage() throws {
+        let msg = try XCTUnwrap("Arweave".data(using: .utf8))
+        let wallet = try XCTUnwrap(WalletTests.wallet)
+        let signedData = try wallet.sign(msg)
+
+        let hash = SHA256.hash(data: signedData).data.base64URLEncodedString()
+        XCTAssertNotNil(hash)
+    }
+
+    func testWinstonToARConversion() {
+        var transferAmount = Amount(value: 1, unit: .AR)
+        let amtInWinston = transferAmount.converted(to: .winston)
+        XCTAssertEqual(amtInWinston.value, 1000000000000, accuracy: 0e-12)
+
+        transferAmount = Amount(value: 2, unit: .winston)
+        let amtInAR = transferAmount.converted(to: .AR)
+        XCTAssertEqual(amtInAR.value, 0.000000000002, accuracy: 0e-12)
+    }
     
     static var allTests = [
         ("testCheckWalletBalance", testCheckWalletBalance),
         ("testFetchLastTransactionId", testFetchLastTransactionId),
         ("testUseCustomClientNode", testUseCustomClientNode),
+        ("testSignMessage", testSignMessage),
         ("testWinstonToARConversion", testWinstonToARConversion),
     ]
 }

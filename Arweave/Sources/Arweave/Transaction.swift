@@ -9,6 +9,10 @@ extension Transaction {
         var bytes: Int = 0
         var target: Address? = nil
     }
+    struct Tag: Codable {
+        let name: String
+        let value: String
+    }
 }
 
 struct Transaction: Codable {
@@ -17,27 +21,28 @@ struct Transaction: Codable {
     var owner: String = ""
     var tags = [Tag]()
     var target: String = ""
-    var quantity: String = ""
+    var quantity: String = "0"
     var data: String = ""
     var reward: String = ""
     var signature: String = ""
 
-    struct Tag: Codable {
-        let name: String
-        let value: String
+    private enum CodingKeys : String, CodingKey {
+        case id, last_tx, owner, tags, target, quantity, data, reward, signature
     }
 
     var priceRequest: PriceRequest {
-        PriceRequest(bytes: data.utf8.count,
+        PriceRequest(bytes: rawData.count,
                      target: Address(address: target))
     }
+
+    var rawData = Data()
 }
 
 let queue = DispatchQueue(label: "com.arweave.sdk", attributes: .concurrent)
 
 extension Transaction {
     init(data: Data) {
-        self.data = data.base64URLEncodedString()
+        self.rawData = data
     }
 
     init(amount: Amount, target: Address) {
@@ -47,7 +52,6 @@ extension Transaction {
 
     func sign(with wallet: Wallet) throws -> Transaction {
         var tx = self
-
         let dispatchGroup = DispatchGroup()
 
         dispatchGroup.enter()
@@ -57,6 +61,7 @@ extension Transaction {
         }
 
         dispatchGroup.enter()
+        tx.data = rawData.base64URLEncodedString()
         Transaction.price(for: self.priceRequest) { result in
             tx.reward = (try? result.get().string) ?? ""
             dispatchGroup.leave()
@@ -74,7 +79,7 @@ extension Transaction {
 
     func commit(completion: @escaping Response<Bool>) {
         guard !signature.isEmpty else {
-            completion(.failure("Missing signature value on transction."))
+            completion(.failure("Missing signature on transaction."))
             return
         }
 
@@ -88,19 +93,14 @@ extension Transaction {
     }
 
     private func signatureBody() -> Data {
-        let tagsString = tags.reduce(into: "") { str, tag in
-            str += tag.name
-            str += tag.value
-        }
-
         return [
             Data(base64URLEncoded: owner),
             Data(base64URLEncoded: target),
-            Data(base64URLEncoded: data),
+            rawData,
             quantity.data(using: .utf8),
             reward.data(using: .utf8),
             Data(base64URLEncoded: last_tx),
-            tagsString.data(using: .utf8)
+            tags.combined.data(using: .utf8)
         ]
         .compactMap { $0 }
         .combined
@@ -182,6 +182,15 @@ extension Transaction {
                 return
             }
             completion(.success(anchor))
+        }
+    }
+}
+
+extension Array where Element == Transaction.Tag {
+    var combined: String {
+        reduce(into: "") { str, tag in
+            str += tag.name
+            str += tag.value
         }
     }
 }

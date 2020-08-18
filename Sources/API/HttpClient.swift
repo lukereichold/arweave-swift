@@ -18,7 +18,9 @@ struct HttpClient {
                     let response = shouldFilterStatusCodes ? try moyaResponse.filterSuccessfulStatusCodes() : moyaResponse
                     completion(.success(response))
                 } catch {
-                    let error = NSError(domain: "com.arweave.sdk", code: 0, userInfo: [NSLocalizedDescriptionKey: "Bad response code: \(moyaResponse.statusCode)"])
+                    let error = NSError(domain: "com.arweave.sdk",
+                                        code: 0,
+                                        userInfo: [NSLocalizedDescriptionKey: "Bad response code: \(moyaResponse.statusCode)"])
                     completion(.failure(error))
                 }
             case .failure(let error):

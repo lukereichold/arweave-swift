@@ -53,11 +53,12 @@ public struct Wallet {
     }
 }
 
-struct Address: Equatable {
+public struct Address: Equatable, CustomStringConvertible {
     let address: String
+    public var description: String { address }
 }
 
-extension Address: CustomStringConvertible {
+extension Address {
     init(from modulus: String) {
         guard let data = Data(base64URLEncoded: modulus) else {
             preconditionFailure("Invalid base64 value for JWK public modulus (n) property.")
@@ -65,17 +66,15 @@ extension Address: CustomStringConvertible {
         let digest = SHA256.hash(data: data)
         address = digest.data.base64URLEncodedString()
     }
-    
-    var description: String { address }
 }
 
-typealias Amount = Measurement<ARUnit>
+public typealias Amount = Measurement<ARUnit>
 
-final class ARUnit: Dimension {
+public final class ARUnit: Dimension {
     static let AR = ARUnit(symbol: "AR", converter: UnitConverterLinear(coefficient: 1e12))
     static let winston = ARUnit(symbol: "winston", converter: UnitConverterLinear(coefficient: 1.0))
 
-    override class func baseUnit() -> Self {
+    override public class func baseUnit() -> Self {
         return winston as! Self
     }
 }

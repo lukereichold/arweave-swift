@@ -192,6 +192,6 @@ final class TransactionTests: XCTestCase {
         ("testFetchAnchor", testFetchAnchor),
         ("testSignTransaction_SetsAnchor", testSignTransaction_SetsAnchor),
         ("testSubmitWalletToWalletTransaction", testSubmitWalletToWalletTransaction),
-        ("testSubmitDataTransaction", testSubmitDataTransaction),
+        ("testSubmitDataTransaction", testSubmitDataTransaction)
     ]
 }

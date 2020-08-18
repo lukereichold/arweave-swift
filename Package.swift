@@ -7,12 +7,12 @@ let package = Package(
     name: "Arweave",
     platforms: [
         .macOS(.v10_15),
-        .iOS(.v13),
+        .iOS(.v13)
     ],
     products: [
         .library(
             name: "Arweave",
-            targets: ["Arweave"]),
+            targets: ["Arweave"])
     ],
     dependencies: [
         .package(url: "https://github.com/Moya/Moya.git", .upToNextMajor(from: "14.0.0")),
@@ -21,9 +21,11 @@ let package = Package(
     targets: [
         .target(
             name: "Arweave",
-            dependencies: ["Moya", "JOSESwift"]),
+            dependencies: ["Moya", "JOSESwift"],
+            path: "Sources"),
         .testTarget(
             name: "ArweaveTests",
-            dependencies: ["Arweave"])
+            dependencies: ["Arweave"],
+            path: "Tests")
     ]
 )

@@ -91,7 +91,7 @@ final class WalletTests: XCTestCase {
         ("testFetchLastTransactionId", testFetchLastTransactionId),
         ("testUseCustomClientNode", testUseCustomClientNode),
         ("testSignMessage", testSignMessage),
-        ("testWinstonToARConversion", testWinstonToARConversion),
+        ("testWinstonToARConversion", testWinstonToARConversion)
     ]
 }
 

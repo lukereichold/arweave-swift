@@ -1,23 +1,25 @@
 import Foundation
 
-extension Transaction {
+public extension Transaction {
     enum Status {
         case accepted(data: Data)
         case pending
         case notFound
         case failed
         case invalid
+    }
+}
 
-        struct Data: Codable {
-            let block_height: Int
-            let block_indep_hash: String
-            let number_of_confirmations: Int
-        }
+public extension Transaction.Status {
+    struct Data: Codable {
+        let block_height: Int
+        let block_indep_hash: String
+        let number_of_confirmations: Int
     }
 }
 
 extension Transaction.Status: RawRepresentable {
-    enum RawStatus { case status(Int), data(Data) }
+    public enum RawStatus { case status(Int), data(Data) }
     public typealias RawValue = RawStatus
 
     public init?(rawValue: RawValue) {

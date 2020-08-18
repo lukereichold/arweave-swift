@@ -1,13 +1,13 @@
 import Foundation
 import CryptoKit
 
-typealias TransactionId = String
-typealias Base64EncodedString = String
+public typealias TransactionId = String
+public typealias Base64EncodedString = String
 
-extension Transaction {
+public extension Transaction {
     struct PriceRequest {
         var bytes: Int = 0
-        var target: Address? = nil
+        var target: Address?
     }
     struct Tag: Codable {
         let name: String
@@ -15,7 +15,7 @@ extension Transaction {
     }
 }
 
-struct Transaction: Codable {
+public struct Transaction: Codable {
     var id: TransactionId = ""
     var last_tx: TransactionId = ""
     var owner: String = ""
@@ -26,13 +26,12 @@ struct Transaction: Codable {
     var reward: String = ""
     var signature: String = ""
 
-    private enum CodingKeys : String, CodingKey {
+    private enum CodingKeys: String, CodingKey {
         case id, last_tx, owner, tags, target, quantity, data, reward, signature
     }
 
     var priceRequest: PriceRequest {
-        PriceRequest(bytes: rawData.count,
-                     target: Address(address: target))
+        PriceRequest(bytes: rawData.count, target: Address(address: target))
     }
 
     var rawData = Data()
@@ -40,7 +39,7 @@ struct Transaction: Codable {
 
 let queue = DispatchQueue(label: "com.arweave.sdk", attributes: .concurrent)
 
-extension Transaction {
+public extension Transaction {
     init(data: Data) {
         self.rawData = data
     }
@@ -55,7 +54,7 @@ extension Transaction {
         let dispatchGroup = DispatchGroup()
 
         dispatchGroup.enter()
-        Transaction.anchor() { result in
+        Transaction.anchor { result in
             tx.last_tx = (try? result.get()) ?? ""
             dispatchGroup.leave()
         }
@@ -107,7 +106,7 @@ extension Transaction {
     }
 }
 
-extension Transaction {
+public extension Transaction {
 
     typealias Response<T> = (Swift.Result<T, Error>) -> Void
 

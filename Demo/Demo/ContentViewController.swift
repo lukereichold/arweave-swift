@@ -1,11 +1,12 @@
 import UIKit
 import Arweave
 
-class ViewController: UIViewController {
+class ContentViewController: UITableViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
     }
+
 
 }

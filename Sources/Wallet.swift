@@ -4,9 +4,9 @@ import CryptoKit
 
 public struct Wallet {
 
-    let key: RSAPrivateKey
-    var ownerModulus: String
-    var address: Address
+    public let key: RSAPrivateKey
+    public var ownerModulus: String
+    public var address: Address
 
     public init?(jwkFileData: Data) {
         guard let jwk = try? RSAPrivateKey(data: jwkFileData) else { return nil }
@@ -15,7 +15,7 @@ public struct Wallet {
         address = Address(from: key.modulus)
     }
     
-    func balance(completion: @escaping (Result<Amount, Error>) -> Void) {
+    public func balance(completion: @escaping (Result<Amount, Error>) -> Void) {
         let target = API(route: .walletBalance(walletAddress: address))
         HttpClient.request(target) { result in
             guard let balance = try? result.get().map(Double.self) else {
@@ -27,7 +27,7 @@ public struct Wallet {
         }
     }
     
-    func lastTransactionId(completion: @escaping (Result<TransactionId, Error>) -> Void) {
+    public func lastTransactionId(completion: @escaping (Result<TransactionId, Error>) -> Void) {
         let target = API(route: .lastTransactionId(walletAddress: address))
         HttpClient.request(target) { result in
             guard let lastTx = try? result.get().mapString() else {
@@ -38,7 +38,7 @@ public struct Wallet {
         }
     }
 
-    func sign(_ message: Data) throws -> Data {
+    public func sign(_ message: Data) throws -> Data {
         let privateKey: SecKey = try key.converted(to: SecKey.self)
 
         let algorithm: SecKeyAlgorithm = .rsaSignatureMessagePSSSHA256
@@ -54,7 +54,7 @@ public struct Wallet {
 }
 
 public struct Address: Equatable, CustomStringConvertible {
-    let address: String
+    public let address: String
     public var description: String { address }
 }
 

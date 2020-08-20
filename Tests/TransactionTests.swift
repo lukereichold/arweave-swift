@@ -96,13 +96,15 @@ final class TransactionTests: XCTestCase {
         XCTAssert(price.value > 0)
     }
 
-    func testCreateNewDataTransaction() {
+    func testCreateNewDataTransaction() throws {
         let data = "<h1>Hello World!</h1>".data(using: .utf8)!
         let expectedBase64UrlEncodedString = "PGgxPkhlbGxvIFdvcmxkITwvaDE-"
+        let wallet = try XCTUnwrap(TransactionTests.wallet)
 
         let transaction = Transaction(data: data)
+        let signedTx = try transaction.sign(with: wallet)
 
-        XCTAssertEqual(transaction.data, expectedBase64UrlEncodedString)
+        XCTAssertEqual(signedTx.data, expectedBase64UrlEncodedString)
     }
 
     func testCreateNewWalletToWalletTransaction() {

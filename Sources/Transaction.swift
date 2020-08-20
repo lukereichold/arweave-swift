@@ -76,7 +76,7 @@ public extension Transaction {
         return tx
     }
 
-    func commit(completion: @escaping Response<Bool>) {
+    func commit(completion: @escaping (VoidResult) -> ()) throws {
         guard !signature.isEmpty else {
             completion(.failure("Missing signature on transaction."))
             return
@@ -84,10 +84,10 @@ public extension Transaction {
 
         HttpClient.request(API(route: .commit(self))) { result in
             guard let tx = try? result.get(), tx.statusCode == 200 else {
-                completion(.failure("Failed to submit transaction."))
+                completion(.failure("Failed to submit transaction"))
                 return
             }
-            completion(.success(true))
+            completion(.success)
         }
     }
 
@@ -109,6 +109,11 @@ public extension Transaction {
 public extension Transaction {
 
     typealias Response<T> = (Swift.Result<T, Error>) -> Void
+
+    enum VoidResult {
+        case success
+        case failure(Error)
+    }
 
     static func find(with txId: TransactionId,
                      completion: @escaping Response<Transaction>) {

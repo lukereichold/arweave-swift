@@ -34,11 +34,6 @@ class WalletsViewController: UITableViewController {
         cell.textLabel?.text = "\(wallets[indexPath.row])"
         return cell
     }
-
-    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let selectedWalletAddress = wallets[indexPath.row]
-        try! keychain?.set(selectedWalletAddress, key: "active_wallet")
-    }
 }
 
 extension WalletsViewController: UIDocumentPickerDelegate {

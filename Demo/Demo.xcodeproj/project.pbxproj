@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		C31C147524EC8EEB00C3688D /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C31C147424EC8EEB00C3688D /* ShareViewController.swift */; };
+		C31C147524EC8EEB00C3688D /* ArchiveViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C31C147424EC8EEB00C3688D /* ArchiveViewController.swift */; };
 		C31C147824EC8EEB00C3688D /* MainInterface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = C31C147624EC8EEB00C3688D /* MainInterface.storyboard */; };
 		C31C147C24EC8EEB00C3688D /* ArweaveShare.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = C31C147224EC8EEB00C3688D /* ArweaveShare.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		C31C148424ECB15400C3688D /* Arweave in Frameworks */ = {isa = PBXBuildFile; productRef = C31C148324ECB15400C3688D /* Arweave */; };
@@ -49,7 +49,7 @@
 
 /* Begin PBXFileReference section */
 		C31C147224EC8EEB00C3688D /* ArweaveShare.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ArweaveShare.appex; sourceTree = BUILT_PRODUCTS_DIR; };
-		C31C147424EC8EEB00C3688D /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
+		C31C147424EC8EEB00C3688D /* ArchiveViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchiveViewController.swift; sourceTree = "<group>"; };
 		C31C147724EC8EEB00C3688D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/MainInterface.storyboard; sourceTree = "<group>"; };
 		C31C147924EC8EEB00C3688D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		C31C148124ECA78D00C3688D /* Demo.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Demo.entitlements; sourceTree = "<group>"; };
@@ -91,7 +91,7 @@
 			isa = PBXGroup;
 			children = (
 				C31C148224ECA81900C3688D /* ArweaveShare.entitlements */,
-				C31C147424EC8EEB00C3688D /* ShareViewController.swift */,
+				C31C147424EC8EEB00C3688D /* ArchiveViewController.swift */,
 				C31C147624EC8EEB00C3688D /* MainInterface.storyboard */,
 				C31C147924EC8EEB00C3688D /* Info.plist */,
 			);
@@ -253,7 +253,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C31C147524EC8EEB00C3688D /* ShareViewController.swift in Sources */,
+				C31C147524EC8EEB00C3688D /* ArchiveViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

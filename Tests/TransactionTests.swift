@@ -130,7 +130,7 @@ final class TransactionTests: XCTestCase {
 
     func testSignTransaction_SetsAnchor() throws {
         let simpleData = try XCTUnwrap("Arweave".data(using: .utf8))
-        var transaction = Transaction(data: simpleData)
+        let transaction = Transaction(data: simpleData)
         let wallet = try XCTUnwrap(TransactionTests.wallet)
 
         let lastTx = try transaction.sign(with: wallet).last_tx
@@ -140,45 +140,54 @@ final class TransactionTests: XCTestCase {
     func testSubmitWalletToWalletTransaction() throws {
         let targetAddress = Address(address: "QplJv7rsWFH79ianupIhm0HxVggS93GiDpiJFmS86-s")
         let transferAmount = Amount(value: 0.3, unit: .AR)
-        var transaction = Transaction(amount: transferAmount, target: targetAddress)
+        let transaction = Transaction(amount: transferAmount, target: targetAddress)
 
         let expectation = self.expectation(description: "Test submitting wallet-to-wallet transaction.")
         let wallet = try XCTUnwrap(TransactionTests.wallet)
-        var txWasSuccessful: Bool?
+        var txWasSuccessful = false
 
         let signed = try transaction.sign(with: wallet)
 
         XCTAssertEqual(signed.quantity, "300000000000")
 
-        signed.commit { committedTxResult in
-            txWasSuccessful = try? committedTxResult.get()
-            expectation.fulfill()
+        try signed.commit { committedTxResult in
+            switch committedTxResult {
+            case .success:
+                txWasSuccessful = true
+                expectation.fulfill()
+            default:
+                break
+            }
         }
 
         waitForExpectations(timeout: 20, handler: nil)
-        XCTAssertNotNil(txWasSuccessful)
+        XCTAssert(txWasSuccessful)
     }
 
     func testSubmitDataTransaction() throws {
         let data = "Arweave".data(using: .utf8)!
-        var transaction = Transaction(data: data)
+        let transaction = Transaction(data: data)
 
         let expectation = self.expectation(description: "Test submitting data transaction.")
         let wallet = try XCTUnwrap(TransactionTests.wallet)
-        var txWasSuccessful: Bool?
+        var txWasSuccessful = false
 
         let signed = try transaction.sign(with: wallet)
 
         XCTAssertEqual(signed.quantity, "0")
         XCTAssertEqual(signed.target, "")
 
-        signed.commit { committedTxResult in
-            txWasSuccessful = try? committedTxResult.get()
-            expectation.fulfill()
-        }
-
+        try signed.commit { committedTxResult in
+             switch committedTxResult {
+             case .success:
+                 txWasSuccessful = true
+                 expectation.fulfill()
+             default:
+                 break
+             }
+         }
         waitForExpectations(timeout: 20, handler: nil)
-        XCTAssertNotNil(txWasSuccessful)
+        XCTAssert(txWasSuccessful)
     }
 
     static var allTests = [

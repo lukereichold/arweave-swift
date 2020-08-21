@@ -53,7 +53,7 @@ wallet.address
 /// 1seRanklLU_1VTGkEk7P0xAwMJfA7owA1JHW5KyZKlY
 ```
 
-#### Check wallet balance (asynchronous)
+#### Check wallet balance (async)
 
 All wallet balances are returned using [winston](https://docs.arweave.org/developers/server/http-api#ar-and-winston) units. 
 ```swift
@@ -73,7 +73,7 @@ let amtInAR = transferAmount.converted(to: .AR)
 XCTAssertEqual(amtInAR.value, 0.000000000002, accuracy: 0e-12) // ✅
 ```
 
-#### Fetch the last transaction ID for a given wallet (asynchronous)
+#### Fetch the last transaction ID for a given wallet (async)
 
 ```swift
 wallet.lastTransactionId { result in
@@ -83,7 +83,85 @@ wallet.lastTransactionId { result in
 
 ### Transactions
 
+Transactions are the building blocks of the Arweave permaweb. They can send [AR](https://docs.arweave.org/developers/server/http-api#ar-and-winston) between wallet addresses or store data on the Arweave network.
 
+#### Create a Data Transaction
+
+Data transactions are used to store data on the Arweave permaweb and can contain any arbitrary data.
+
+```swift
+let data = "<h1>Hello World!</h1>".data(using: .utf8)!
+let transaction = Transaction(data: data)
+```
+
+#### Create a wallet-to-wallet Transaction
+
+```swift
+let targetAddress = Address(address: "someOtherWalletAddress")
+let transferAmount = Amount(value: 500, unit: .winston)
+
+let transaction = Transaction(amount: transferAmount, target: targetAddress)
+```
+
+#### Modifying an existing Transaction
+
+Metadata can be optionally added to transactions through tags, these are simple key/value attributes that can be used to document the contents of a transaction or provide related data.
+
+```swift
+let tag = Tag(name: "myTag", value: "myValue")
+transaction.tags.append(tag)
+```
+
+#### Signing and Submitting a Transaction
+
+The data and wallet-to-wallet transaction initializers above simply create an unsigned `Transaction` object. To be submitted to the network, however, each `Transaction` must first be signed.
+
+```swift
+let signed: Transaction = try transaction.sign(with: wallet)
+
+try signed.commit { committedTxResult in
+    switch committedTxResult {
+    case .success:
+        // Tx submitted successfully
+    case .failure(error):
+        // Handle error appropriately
+    }
+}
+```
+
+
+⚠️ **Modifying a transaction object after signing it will invalidate the signature**, this will cause it to be rejected by the network if submitted in that state. Transaction prices are based on the size of the data field, so modifying the data field after a transaction has been created isn't recommended as you'll need to manually update the price.
+
+The transaction ID is a hash of the transaction signature, so a transaction ID can't be known until its contents are finalized and it has been signed.
+
+#### Get a Transaction status (async)
+
+```swift
+Transaction.status(of: exampleTxId) { result in
+    let status: Transaction.Status = try? result.get()
+
+    /// Arweave.Transaction.Status.accepted(data: Arweave.Transaction.Status.Data(block_height: 502761, block_indep_hash: "V6pCKSyeQiqICWKM2G_zkQ8SCA_WKnZoVGOD8eKFV_xozoWS9xPFgncxnMWjtFao", number_of_confirmations: 8655))
+}
+```
+
+#### Fetch Transaction content for a given ID (async)
+
+```swift
+Transaction.find(with: exampleTxId) { result in
+    let tx: Transaction = try? result.get()
+}
+```
+
+#### Fetch Transaction data (async)
+
+We can get the transaction data (represented as a base64 URL encoded string) for a given transaction ID without having to fetch the entire Transaction object.
+
+```swift
+Transaction.data(for: lastTx!) { result in
+    guard let dataString = try? result.get() else { return }
+    let data = Data(base64URLEncoded: dataString)
+}
+```
 
 ## Contribute
 

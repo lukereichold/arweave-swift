@@ -40,7 +40,6 @@ class ArchiveViewController: SLComposeServiceViewController {
             }
         }
 
-        // Inform the host that we're done, so it un-blocks its UI. Note: Alternatively you could call super's -didSelectPost, which will similarly complete the extension context.
         extensionContext!.completeRequest(returningItems: [], completionHandler: nil)
     }
 
@@ -51,7 +50,8 @@ class ArchiveViewController: SLComposeServiceViewController {
 
         let tx = Transaction(data: data)
         do {
-            try tx.sign(with: wallet).commit { result in
+            let signedTx = try tx.sign(with: wallet)
+            try signedTx.commit { result in
                 guard case .success = result else { return }
                 print("Data successfully submitted to the Arweave!")
             }

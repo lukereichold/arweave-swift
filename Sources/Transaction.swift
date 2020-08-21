@@ -16,15 +16,15 @@ public extension Transaction {
 }
 
 public struct Transaction: Codable {
-    var id: TransactionId = ""
-    var last_tx: TransactionId = ""
-    var owner: String = ""
-    var tags = [Tag]()
-    var target: String = ""
-    var quantity: String = "0"
-    var data: String = ""
-    var reward: String = ""
-    var signature: String = ""
+    public var id: TransactionId = ""
+    public var last_tx: TransactionId = ""
+    public var owner: String = ""
+    public var tags = [Tag]()
+    public var target: String = ""
+    public var quantity: String = "0"
+    public var data: String = ""
+    public var reward: String = ""
+    public var signature: String = ""
 
     private enum CodingKeys: String, CodingKey {
         case id, last_tx, owner, tags, target, quantity, data, reward, signature
@@ -34,7 +34,7 @@ public struct Transaction: Codable {
         PriceRequest(bytes: rawData.count, target: Address(address: target))
     }
 
-    var rawData = Data()
+    public var rawData = Data()
 }
 
 let queue = DispatchQueue(label: "com.arweave.sdk", attributes: .concurrent)

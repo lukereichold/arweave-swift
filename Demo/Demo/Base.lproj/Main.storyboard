@@ -4,6 +4,8 @@
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="17124"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -78,7 +80,7 @@
                         <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <prototypes>
-                            <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" id="JGi-X3-HRD">
+                            <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="TxCell" id="JGi-X3-HRD">
                                 <rect key="frame" x="20" y="55.5" width="374" height="43.5"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="JGi-X3-HRD" id="WWk-db-Sph">
@@ -92,17 +94,51 @@
                             <outlet property="delegate" destination="3Yn-sb-qHZ" id="Lrm-6f-Nov"/>
                         </connections>
                     </tableView>
-                    <navigationItem key="navigationItem" title="Content" id="ung-CX-8uT"/>
+                    <navigationItem key="navigationItem" title="Transactions" id="ung-CX-8uT"/>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="BsS-fp-CLn" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="87" y="-944"/>
         </scene>
-        <!--Content-->
+        <!--Data View Controller-->
+        <scene sceneID="c3D-Ze-aYX">
+            <objects>
+                <viewController storyboardIdentifier="DataViewController" id="oHW-od-Xf1" customClass="DataViewController" customModule="Demo" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="ybf-G0-RAg">
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <wkWebView contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="RJW-By-HRP">
+                                <rect key="frame" x="0.0" y="44" width="414" height="818"/>
+                                <color key="backgroundColor" red="0.36078431370000003" green="0.38823529410000002" blue="0.4039215686" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <wkWebViewConfiguration key="configuration">
+                                    <audiovisualMediaTypes key="mediaTypesRequiringUserActionForPlayback" none="YES"/>
+                                    <wkPreferences key="preferences"/>
+                                </wkWebViewConfiguration>
+                            </wkWebView>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="aEu-LM-CUj"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="RJW-By-HRP" firstAttribute="leading" secondItem="aEu-LM-CUj" secondAttribute="leading" id="8rf-90-vmR"/>
+                            <constraint firstItem="aEu-LM-CUj" firstAttribute="bottom" secondItem="RJW-By-HRP" secondAttribute="bottom" id="F7e-6p-7EN"/>
+                            <constraint firstItem="aEu-LM-CUj" firstAttribute="trailing" secondItem="RJW-By-HRP" secondAttribute="trailing" id="H0C-hY-IA4"/>
+                            <constraint firstItem="RJW-By-HRP" firstAttribute="top" secondItem="aEu-LM-CUj" secondAttribute="top" id="TIg-bt-cPE"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="webView" destination="RJW-By-HRP" id="GvW-qL-R71"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="r6q-Wd-GFm" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="945" y="-944"/>
+        </scene>
+        <!--Transactions-->
         <scene sceneID="IL7-aa-NV6">
             <objects>
                 <navigationController id="svV-bF-8BT" sceneMemberID="viewController">
-                    <tabBarItem key="tabBarItem" title="Content" image="archivebox.fill" catalog="system" id="FIV-u9-XZX"/>
+                    <tabBarItem key="tabBarItem" title="Transactions" image="archivebox.fill" catalog="system" id="FIV-u9-XZX"/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" largeTitles="YES" id="rhZ-0u-owz">
                         <rect key="frame" x="0.0" y="44" width="414" height="96"/>
                         <autoresizingMask key="autoresizingMask"/>
@@ -119,5 +155,8 @@
     <resources>
         <image name="archivebox.fill" catalog="system" width="128" height="106"/>
         <image name="wallet" width="30" height="30"/>
+        <systemColor name="systemBackgroundColor">
+            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
     </resources>
 </document>

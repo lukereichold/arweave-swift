@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C30F37C924EF586900BA0634 /* DataViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C30F37C824EF586900BA0634 /* DataViewController.swift */; };
+		C30F37CC24EF5C5800BA0634 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C30F37CA24EF5C3500BA0634 /* WebKit.framework */; };
 		C31C147524EC8EEB00C3688D /* ArchiveViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C31C147424EC8EEB00C3688D /* ArchiveViewController.swift */; };
 		C31C147824EC8EEB00C3688D /* MainInterface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = C31C147624EC8EEB00C3688D /* MainInterface.storyboard */; };
 		C31C147C24EC8EEB00C3688D /* ArweaveShare.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = C31C147224EC8EEB00C3688D /* ArweaveShare.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -48,6 +50,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		C30F37C824EF586900BA0634 /* DataViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataViewController.swift; sourceTree = "<group>"; };
+		C30F37CA24EF5C3500BA0634 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
 		C31C147224EC8EEB00C3688D /* ArweaveShare.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ArweaveShare.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		C31C147424EC8EEB00C3688D /* ArchiveViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchiveViewController.swift; sourceTree = "<group>"; };
 		C31C147724EC8EEB00C3688D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/MainInterface.storyboard; sourceTree = "<group>"; };
@@ -81,6 +85,7 @@
 			files = (
 				C3FD60FF24EC6AA100C64399 /* Arweave in Frameworks */,
 				C39F084F24ECD05D00FBEFAF /* KeychainAccess in Frameworks */,
+				C30F37CC24EF5C5800BA0634 /* WebKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -125,6 +130,7 @@
 				C3FD60E324EBD17E00C64399 /* SceneDelegate.swift */,
 				C3FD60E524EBD17E00C64399 /* WalletsViewController.swift */,
 				C350CEBB24EC86F600C2629F /* ContentViewController.swift */,
+				C30F37C824EF586900BA0634 /* DataViewController.swift */,
 				C3FD60E724EBD17E00C64399 /* Main.storyboard */,
 				C3FD60EA24EBD17E00C64399 /* Assets.xcassets */,
 				C3FD60EC24EBD17E00C64399 /* LaunchScreen.storyboard */,
@@ -136,6 +142,7 @@
 		C3FD60F924EC6A8000C64399 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				C30F37CA24EF5C3500BA0634 /* WebKit.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -263,6 +270,7 @@
 			files = (
 				C350CEBC24EC86F600C2629F /* ContentViewController.swift in Sources */,
 				C3FD60E624EBD17E00C64399 /* WalletsViewController.swift in Sources */,
+				C30F37C924EF586900BA0634 /* DataViewController.swift in Sources */,
 				C3FD60E224EBD17E00C64399 /* AppDelegate.swift in Sources */,
 				C3FD60E424EBD17E00C64399 /* SceneDelegate.swift in Sources */,
 			);

@@ -2,7 +2,7 @@ import UIKit
 import Arweave
 import KeychainAccess
 
-class WalletsViewController: UITableViewController {
+final class WalletsViewController: UITableViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()

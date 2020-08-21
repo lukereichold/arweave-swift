@@ -9,7 +9,7 @@ A lightweight Swift client for the Arweave blockchain
 
 ## Installation
 
-To install via [Swift Package Manager](https://swift.org/package-manager), add `Arweave` to your `Package.swift` file. Alternatively, add it from Xcode directly.
+To install via [Swift Package Manager](https://swift.org/package-manager), add `Arweave` to your `Package.swift` file. Alternatively, [add it to your Xcode project directly](https://developer.apple.com/documentation/xcode/adding_package_dependencies_to_your_app).
 
 ```swift
 let package = Package(

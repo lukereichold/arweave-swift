@@ -46,7 +46,7 @@ guard let keyFileData = try? Data(contentsOf: keyFileUrl) else { return }
 let wallet = Wallet(jwkFileData: keyFileData)
 ```
 
-#### Get the wallet address for a private key
+#### Get a wallet's public address
 
 ```swift
 wallet.address

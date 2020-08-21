@@ -14,9 +14,9 @@
         "package": "JOSESwift",
         "repositoryURL": "https://github.com/lukereichold/JOSESwift.git",
         "state": {
-          "branch": "master",
-          "revision": "3b8b9d0d121d0021eaac78d5c32a070bcda40776",
-          "version": null
+          "branch": null,
+          "revision": "864d6a014a4aa343dd47f3804f12b8a42a7b21eb",
+          "version": "2.2.4"
         }
       },
       {

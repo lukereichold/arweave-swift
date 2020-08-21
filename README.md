@@ -5,7 +5,7 @@
 [![SPM compatible](https://img.shields.io/badge/spm-compatible-brightgreen.svg?style=flat)](https://swift.org/package-manager)
 [![Twitter](https://img.shields.io/badge/twitter-@lreichold-blue.svg?style=flat)](https://twitter.com/lreichold)
 
-A lightweight Swift client for the Arweave blockchain
+A lightweight Swift client for the Arweave blockchain, providing type safety for interacting with the Arweave API
 
 ## Installation
 
@@ -35,6 +35,53 @@ See the included demo app, which dynamically creates a `Wallet` object from an e
 
 
 ## Usage
+
+### Wallets and Keys
+
+#### Creating a Wallet from an existing JWK keyfile
+
+```swift
+guard let keyFileData = try? Data(contentsOf: keyFileUrl) else { return }
+
+let wallet = Wallet(jwkFileData: keyFileData)
+```
+
+#### Get the wallet address for a private key
+
+```swift
+wallet.address
+/// 1seRanklLU_1VTGkEk7P0xAwMJfA7owA1JHW5KyZKlY
+```
+
+#### Check wallet balance (asynchronous)
+
+All wallet balances are returned using [winston](https://docs.arweave.org/developers/server/http-api#ar-and-winston) units. 
+```swift
+wallet.balance { result in
+    let balance: Amount = try? result.get()
+}
+```
+
+#### Convert amounts between AR and winston units
+```swift
+var transferAmount = Amount(value: 1, unit: .AR)
+let amtInWinston = transferAmount.converted(to: .winston)
+XCTAssertEqual(amtInWinston.value, 1000000000000, accuracy: 0e-12) // ✅
+
+transferAmount = Amount(value: 2, unit: .winston)
+let amtInAR = transferAmount.converted(to: .AR)
+XCTAssertEqual(amtInAR.value, 0.000000000002, accuracy: 0e-12) // ✅
+```
+
+#### Fetch the last transaction ID for a given wallet (asynchronous)
+
+```swift
+wallet.lastTransactionId { result in
+    let lastTxId: TransactionId = try? result.get()
+}
+```
+
+### Transactions
 
 
 

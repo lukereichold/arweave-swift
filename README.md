@@ -108,7 +108,7 @@ let transaction = Transaction(amount: transferAmount, target: targetAddress)
 Metadata can be optionally added to transactions through tags, these are simple key/value attributes that can be used to document the contents of a transaction or provide related data.
 
 ```swift
-let tag = Tag(name: "myTag", value: "myValue")
+let tag = Transaction.Tag(name: "myTag", value: "myValue")
 transaction.tags.append(tag)
 ```
 

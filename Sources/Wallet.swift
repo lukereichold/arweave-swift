@@ -56,6 +56,10 @@ public struct Wallet {
 public struct Address: Equatable, CustomStringConvertible {
     public let address: String
     public var description: String { address }
+
+    public init(address: String) {
+        self.address = address
+    }
 }
 
 extension Address {
@@ -71,8 +75,8 @@ extension Address {
 public typealias Amount = Measurement<ARUnit>
 
 public final class ARUnit: Dimension {
-    static let AR = ARUnit(symbol: "AR", converter: UnitConverterLinear(coefficient: 1e12))
-    static let winston = ARUnit(symbol: "winston", converter: UnitConverterLinear(coefficient: 1.0))
+    public static let AR = ARUnit(symbol: "AR", converter: UnitConverterLinear(coefficient: 1e12))
+    public static let winston = ARUnit(symbol: "winston", converter: UnitConverterLinear(coefficient: 1.0))
 
     override public class func baseUnit() -> Self {
         return winston as! Self

@@ -5,13 +5,20 @@ public typealias TransactionId = String
 public typealias Base64EncodedString = String
 
 public extension Transaction {
+
     struct PriceRequest {
         var bytes: Int = 0
         var target: Address?
     }
+
     struct Tag: Codable {
-        let name: String
-        let value: String
+        public let name: String
+        public let value: String
+
+        public init(name: String, value: String) {
+            self.name = name
+            self.value = value
+        }
     }
 }
 

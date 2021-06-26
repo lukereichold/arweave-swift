@@ -7,8 +7,8 @@ final class TransactionTests: XCTestCase {
     static var wallet: Wallet?
 
     class func initWalletFromKeyfile() {
-        guard let keyData = WalletTests.keyData() else { return }
-
+        let keyPath = Bundle.module.path(forResource: "test-key", ofType: "json")
+        guard let keyData = keyPath?.data(using: .utf8) else { return }
         TransactionTests.wallet = Wallet(jwkFileData: keyData)
 
         XCTAssertNotNil(TransactionTests.wallet)

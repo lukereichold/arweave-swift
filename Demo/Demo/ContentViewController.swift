@@ -39,13 +39,17 @@ final class ContentViewController: UITableViewController {
     }
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        Transaction.data(for: lastTx!) { [weak self] result in
-            guard let dataString = try? result.get() else { return }
+        
+        detach {
+            let dataString = try await Transaction.data(for: self.lastTx!)
             let data = Data(base64URLEncoded: dataString)
-            let dataVC = self?.storyboard?.instantiateViewController(withIdentifier: "DataViewController") as! DataViewController
-            dataVC.txId = self?.lastTx!
-            dataVC.data = data
-            self?.navigationController?.pushViewController(dataVC, animated: true)
+            
+            DispatchQueue.main.async {
+                let dataVC = self.storyboard?.instantiateViewController(withIdentifier: "DataViewController") as! DataViewController
+                dataVC.txId = self.lastTx!
+                dataVC.data = data
+                self.navigationController?.pushViewController(dataVC, animated: true)
+            }
         }
     }
 
@@ -54,11 +58,16 @@ final class ContentViewController: UITableViewController {
         guard let walletData = try! keychain?.getData(firstWalletKey) else { return }
         guard let wallet = Wallet(jwkFileData: walletData) else { return }
 
-        wallet.lastTransactionId { [weak self] result in
-            self?.lastTx = try? result.get()
-            self?.tableView.reloadData()
-            self?.refreshControl?.endRefreshing()
+        detach {
+            let lastTx = try await wallet.lastTransactionId()
+                
+            DispatchQueue.main.async {
+                self.lastTx = lastTx
+                self.tableView.reloadData()
+                self.refreshControl?.endRefreshing()
+            }
         }
+   
     }
 
 }

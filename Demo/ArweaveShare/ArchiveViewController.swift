@@ -36,25 +36,25 @@ class ArchiveViewController: SLComposeServiceViewController {
             provider.loadItem(forTypeIdentifier: contentType, options: nil) { [unowned self] (url, error) in
                 guard let pdfUrl = url as? URL else { return }
                 guard let pdfData = try? Data(contentsOf: pdfUrl) else { return }
-                self.uploadDataToArweave(data: pdfData)
+                
+                detach {
+                    await self.uploadDataToArweave(data: pdfData)
+                }
             }
         }
 
         extensionContext!.completeRequest(returningItems: [], completionHandler: nil)
     }
 
-    private func uploadDataToArweave(data: Data) {
+    private func uploadDataToArweave(data: Data) async {
         guard let firstWalletKey = wallets.first else { return }
         guard let walletData = try! keychain?.getData(firstWalletKey) else { return }
         guard let wallet = Wallet(jwkFileData: walletData) else { return }
 
         let tx = Transaction(data: data)
         do {
-            let signedTx = try tx.sign(with: wallet)
-            try signedTx.commit { result in
-                guard case .success = result else { return }
-                print("Data successfully submitted to the Arweave!")
-            }
+            let signedTx = try await tx.sign(with: wallet)
+            try await signedTx.commit()
         } catch {
             debugPrint(error)
         }

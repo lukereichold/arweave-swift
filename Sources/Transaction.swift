@@ -52,7 +52,7 @@ public extension Transaction {
     }
 
     init(amount: Amount, target: Address) {
-        self.quantity = amount.string
+        self.quantity = String(describing: amount)
         self.target = target.address
     }
 
@@ -69,7 +69,7 @@ public extension Transaction {
         dispatchGroup.enter()
         tx.data = rawData.base64URLEncodedString()
         Transaction.price(for: self.priceRequest) { result in
-            tx.reward = (try? result.get().string) ?? ""
+            tx.reward = (try? String(describing: result.get())) ?? ""
             dispatchGroup.leave()
         }
 

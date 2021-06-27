@@ -22,6 +22,7 @@ public struct Wallet {
                 completion(.failure("Unexpected response type in: \(#function)"))
                 return
             }
+            
             let amount = Amount(value: balance, unit: .winston)
             completion(.success(amount))
         }
@@ -69,23 +70,5 @@ extension Address {
         }
         let digest = SHA256.hash(data: data)
         address = digest.data.base64URLEncodedString()
-    }
-}
-
-public typealias Amount = Measurement<ARUnit>
-
-public final class ARUnit: Dimension {
-    public static let AR = ARUnit(symbol: "AR", converter: UnitConverterLinear(coefficient: 1e12))
-    public static let winston = ARUnit(symbol: "winston", converter: UnitConverterLinear(coefficient: 1.0))
-
-    override public class func baseUnit() -> Self {
-        return winston as! Self
-    }
-}
-
-extension Amount {
-    var string: String {
-        let value = converted(to: .winston).value
-        return String(format: "%.f", value)
     }
 }

@@ -24,50 +24,14 @@ final class WalletTests: XCTestCase {
         WalletTests.initWalletFromKeyfile()
     }
     
-    func testCheckWalletBalance() {
-        let expectation = self.expectation(description: "Checking wallet balance")
-        var balance: Amount?
-        
-        WalletTests.wallet?.balance { result in
-            balance = try? result.get()
-            expectation.fulfill()
-        }
-        
-        waitForExpectations(timeout: 20, handler: nil)
+    func testCheckWalletBalance() async throws {
+        let balance = try await WalletTests.wallet?.balance()
         XCTAssertNotNil(balance?.value)
     }
-    
-    func testFetchLastTransactionId() {
-        let expectation = self.expectation(description: "Fetch last transaction ID for wallet")
-        var lastTxId: String?
-        
-        WalletTests.wallet?.lastTransactionId { result in
-            lastTxId = try? result.get()
-            expectation.fulfill()
-        }
-        waitForExpectations(timeout: 20, handler: nil)
+
+    func testFetchLastTransactionId() async throws {
+        let lastTxId = try await WalletTests.wallet?.lastTransactionId()
         XCTAssertNotNil(lastTxId)
-    }
-
-    func testUseCustomClientNode() {
-        var actualHost: String?
-        var actualScheme: String?
-        let expectedScheme = "https"
-        let expectedHost = "arweave.net"
-        let expectation = self.expectation(description: "HTTP request uses custom host")
-
-        API.host = URL(string: "\(expectedScheme)://\(expectedHost)")
-        let target = API(route: .walletBalance(walletAddress: WalletTests.walletAddress))
-        HttpClient.request(target) { result in
-            let request = try? result.get().request
-            actualHost = request?.url?.host
-            actualScheme = request?.url?.scheme
-            expectation.fulfill()
-        }
-
-        waitForExpectations(timeout: 20, handler: nil)
-        XCTAssertEqual(actualHost, expectedHost)
-        XCTAssertEqual(actualScheme, expectedScheme)
     }
 
     func testSignMessage() throws {
@@ -88,11 +52,10 @@ final class WalletTests: XCTestCase {
         let amtInAR = transferAmount.converted(to: .AR)
         XCTAssertEqual(amtInAR.value, 0.000000000002, accuracy: 0e-12)
     }
-    
+
     static var allTests = [
         ("testCheckWalletBalance", testCheckWalletBalance),
         ("testFetchLastTransactionId", testFetchLastTransactionId),
-        ("testUseCustomClientNode", testUseCustomClientNode),
         ("testSignMessage", testSignMessage),
         ("testWinstonToARConversion", testWinstonToARConversion)
     ]

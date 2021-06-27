@@ -1,5 +1,4 @@
 import Foundation
-import Moya
 
 struct API {
     static var host: URL?
@@ -17,7 +16,7 @@ enum Route {
     case commit(Transaction)
 }
 
-extension API: TargetType {
+extension API {
     var baseURL: URL {
         API.host ?? URL(string: "https://arweave.net")!
     }
@@ -47,21 +46,23 @@ extension API: TargetType {
         }
     }
     
-    var method: Moya.Method {
-        if case Route.commit = route {
-            return .post
-        } else {
-            return .get
-        }
+    var url: URL {
+        baseURL.appendingPathComponent(path)
     }
     
-    var sampleData: Data { Data() }
-    
-    var task: Task {
-        if case let Route.commit(transaction) = route {
-            return .requestJSONEncodable(transaction)
+    var method: String {
+        if case Route.commit = route {
+            return "post"
         } else {
-            return .requestPlain
+            return "get"
+        }
+    }
+
+    var body: Data? {
+        if case let Route.commit(transaction) = route {
+            return try? JSONEncoder().encode(transaction)
+        } else {
+            return nil
         }
     }
     

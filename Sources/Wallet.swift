@@ -15,28 +15,25 @@ public struct Wallet {
         address = Address(from: key.modulus)
     }
     
-    public func balance(completion: @escaping (Result<Amount, Error>) -> Void) {
+    public func balance() async throws -> Amount {
         let target = API(route: .walletBalance(walletAddress: address))
-        HttpClient.request(target) { result in
-            guard let balance = try? result.get().map(Double.self) else {
-                completion(.failure("Unexpected response type in: \(#function)"))
-                return
-            }
-            
-            let amount = Amount(value: balance, unit: .winston)
-            completion(.success(amount))
+        let response = try await HttpClient.request(target)
+        
+        let respString = String(decoding: response.data, as: UTF8.self)
+        guard let balance = Double(respString) else {
+            throw "Invalid response"
         }
+        
+        let amount = Amount(value: balance, unit: .winston)
+        return amount
     }
     
-    public func lastTransactionId(completion: @escaping (Result<TransactionId, Error>) -> Void) {
+    public func lastTransactionId() async throws -> TransactionId {
         let target = API(route: .lastTransactionId(walletAddress: address))
-        HttpClient.request(target) { result in
-            guard let lastTx = try? result.get().mapString() else {
-                completion(.failure("Unexpected response type in: \(#function)"))
-                return
-            }
-            completion(.success(lastTx))
-        }
+        let response = try await HttpClient.request(target)
+
+        let lastTx = String(decoding: response.data, as: UTF8.self)
+        return lastTx
     }
 
     public func sign(_ message: Data) throws -> Data {

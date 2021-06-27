@@ -1,4 +1,4 @@
-// swift-tools-version:5.4
+// swift-tools-version:5.5
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -6,8 +6,8 @@ import PackageDescription
 let package = Package(
     name: "Arweave",
     platforms: [
-        .macOS(.v10_15),
-        .iOS(.v13)
+        .macOS("12.0"),
+        .iOS("15.0")
     ],
     products: [
         .library(
@@ -15,13 +15,12 @@ let package = Package(
             targets: ["Arweave"])
     ],
     dependencies: [
-        .package(url: "https://github.com/Moya/Moya.git", .upToNextMajor(from: "14.0.0")),
         .package(url: "https://github.com/lukereichold/JOSESwift.git", .upToNextMajor(from: "2.2.4")),
     ],
     targets: [
         .target(
             name: "Arweave",
-            dependencies: ["Moya", "JOSESwift"],
+            dependencies: ["JOSESwift"],
             path: "Sources"),
         .testTarget(
             name: "ArweaveTests",

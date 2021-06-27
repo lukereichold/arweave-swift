@@ -20,90 +20,53 @@ final class TransactionTests: XCTestCase {
         TransactionTests.initWalletFromKeyfile()
     }
 
-    func testFindTransaction() {
-        let expectation = self.expectation(description: "Find transaction with ID")
-        var actualTx: Transaction?
+    func testFindTransaction() async {
+        let actualTx = try? await Transaction.find(exampleTxId)
 
-        Transaction.find(with: exampleTxId) { result in
-            actualTx = try? result.get()
-            expectation.fulfill()
-        }
-
-        waitForExpectations(timeout: 20, handler: nil)
         XCTAssertNotNil(actualTx)
     }
 
-    func testFetchDataForTransactionId() {
-        let expectation = self.expectation(description: "Fetch transaction data for ID")
-        var actualTxData: Base64EncodedString?
+    func testFetchDataForTransactionId() async throws {
+        let txData = try? await Transaction.data(for: exampleTxId)
 
-        Transaction.data(for: exampleTxId) { result in
-            actualTxData = try? result.get()
-            expectation.fulfill()
-        }
-
-        waitForExpectations(timeout: 20, handler: nil)
-        XCTAssertNotNil(actualTxData)
+        XCTAssertNotNil(txData)
     }
 
-    func testFetchTransactionStatus_AcceptedTx() throws {
-        let expectation = self.expectation(description: "Fetch transaction status for ID")
-        var actualTxStatus: Transaction.Status?
+    func testFetchTransactionStatus_AcceptedTx() async throws {
+        let txStatus = try await Transaction.status(of: exampleTxId)
 
-        Transaction.status(of: exampleTxId) { result in
-            actualTxStatus = try? result.get()
-            expectation.fulfill()
-        }
-
-        waitForExpectations(timeout: 20, handler: nil)
-
-        XCTAssertNotNil(actualTxStatus)
-        let status = try XCTUnwrap(actualTxStatus)
+        XCTAssertNotNil(txStatus)
+        let status = try XCTUnwrap(txStatus)
         if case Transaction.Status.accepted = status {} else {
             XCTFail("Transaction status should be accepted.")
         }
     }
 
-    func testFetchTransactionStatus_InvalidTx() throws {
-        let expectation = self.expectation(description: "Fetch transaction status for ID")
-        var actualTxStatus: Transaction.Status?
+    func testFetchTransactionStatus_InvalidTx() async throws {
+        let txStatus = try await Transaction.status(of: "invalidId")
 
-        Transaction.status(of: "invalidId") { result in
-            actualTxStatus = try? result.get()
-            expectation.fulfill()
-        }
-
-        waitForExpectations(timeout: 20, handler: nil)
-
-        XCTAssertNotNil(actualTxStatus)
-        let status = try XCTUnwrap(actualTxStatus)
+        XCTAssertNotNil(txStatus)
+        let status = try XCTUnwrap(txStatus)
         if case Transaction.Status.invalid = status {} else {
             XCTFail("Transaction status should be invalid.")
         }
     }
 
-    func testFetchPriceForDataPayload() throws {
-        let expectation = self.expectation(description: "Fetch transaction data for ID")
-        var cost: Amount?
-
+    func testFetchPriceForDataPayload() async throws {
         let req = Transaction.PriceRequest(bytes: 1200)
-        Transaction.price(for: req) { result in
-            cost = try? result.get()
-            expectation.fulfill()
-        }
+        let amount = try await Transaction.price(for: req)
 
-        waitForExpectations(timeout: 20, handler: nil)
-        let price = try XCTUnwrap(cost)
+        let price = try XCTUnwrap(amount)
         XCTAssert(price.value > 0)
     }
 
-    func testCreateNewDataTransaction() throws {
+    func testCreateNewDataTransaction() async throws {
         let data = "<h1>Hello World!</h1>".data(using: .utf8)!
         let expectedBase64UrlEncodedString = "PGgxPkhlbGxvIFdvcmxkITwvaDE-"
         let wallet = try XCTUnwrap(TransactionTests.wallet)
 
         let transaction = Transaction(data: data)
-        let signedTx = try transaction.sign(with: wallet)
+        let signedTx = try await transaction.sign(with: wallet)
 
         XCTAssertEqual(signedTx.data, expectedBase64UrlEncodedString)
     }
@@ -118,79 +81,44 @@ final class TransactionTests: XCTestCase {
         XCTAssertEqual(transaction.target, "someOtherWalletAddress")
     }
 
-    func testFetchAnchor() {
-        let expectation = self.expectation(description: "Fetch network anchor")
-        var lastTx: TransactionId?
-
-        Transaction.anchor() { result in
-            lastTx = try? result.get()
-            expectation.fulfill()
-        }
-
-        waitForExpectations(timeout: 20, handler: nil)
+    func testFetchAnchor() async throws {
+        let lastTx = try await Transaction.anchor()
         XCTAssertNotNil(lastTx)
     }
 
-    func testSignTransaction_SetsAnchor() throws {
+    func testSignTransaction_SetsAnchor() async throws {
         let simpleData = try XCTUnwrap("Arweave".data(using: .utf8))
         let transaction = Transaction(data: simpleData)
         let wallet = try XCTUnwrap(TransactionTests.wallet)
 
-        let lastTx = try transaction.sign(with: wallet).last_tx
+        let lastTx = try await transaction.sign(with: wallet).last_tx
         XCTAssertNotNil(lastTx)
     }
 
-    func testSubmitWalletToWalletTransaction() throws {
+    func testSubmitWalletToWalletTransaction() async throws {
         let targetAddress = Address(address: "QplJv7rsWFH79ianupIhm0HxVggS93GiDpiJFmS86-s")
         let transferAmount = Amount(value: 0.3, unit: .AR)
         let transaction = Transaction(amount: transferAmount, target: targetAddress)
 
-        let expectation = self.expectation(description: "Test submitting wallet-to-wallet transaction.")
         let wallet = try XCTUnwrap(TransactionTests.wallet)
-        var txWasSuccessful = false
 
-        let signed = try transaction.sign(with: wallet)
-
+        let signed = try await transaction.sign(with: wallet)
         XCTAssertEqual(signed.quantity, "300000000000")
 
-        try signed.commit { committedTxResult in
-            switch committedTxResult {
-            case .success:
-                txWasSuccessful = true
-                expectation.fulfill()
-            default:
-                break
-            }
-        }
-
-        waitForExpectations(timeout: 20, handler: nil)
-        XCTAssert(txWasSuccessful)
+        try await signed.commit()
     }
 
-    func testSubmitDataTransaction() throws {
+    func testSubmitDataTransaction() async throws {
         let data = "Arweave".data(using: .utf8)!
         let transaction = Transaction(data: data)
 
-        let expectation = self.expectation(description: "Test submitting data transaction.")
         let wallet = try XCTUnwrap(TransactionTests.wallet)
-        var txWasSuccessful = false
-
-        let signed = try transaction.sign(with: wallet)
+        let signed = try await transaction.sign(with: wallet)
 
         XCTAssertEqual(signed.quantity, "0")
         XCTAssertEqual(signed.target, "")
 
-        try signed.commit { committedTxResult in
-             switch committedTxResult {
-             case .success:
-                 txWasSuccessful = true
-                 expectation.fulfill()
-             default:
-                 break
-             }
-         }
-        waitForExpectations(timeout: 20, handler: nil)
-        XCTAssert(txWasSuccessful)
+        try await signed.commit()
     }
 
     static var allTests = [
@@ -205,5 +133,5 @@ final class TransactionTests: XCTestCase {
         ("testSignTransaction_SetsAnchor", testSignTransaction_SetsAnchor),
         ("testSubmitWalletToWalletTransaction", testSubmitWalletToWalletTransaction),
         ("testSubmitDataTransaction", testSubmitDataTransaction)
-    ]
+    ] as [Any]
 }

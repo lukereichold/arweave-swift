@@ -44,8 +44,6 @@ public struct Transaction: Codable {
     public var rawData = Data()
 }
 
-let queue = DispatchQueue(label: "com.arweave.sdk", attributes: .concurrent)
-
 public extension Transaction {
     init(data: Data) {
         self.rawData = data
@@ -56,24 +54,14 @@ public extension Transaction {
         self.target = target.address
     }
 
-    func sign(with wallet: Wallet) throws -> Transaction {
+    func sign(with wallet: Wallet) async throws -> Transaction {
         var tx = self
-        let dispatchGroup = DispatchGroup()
-
-        dispatchGroup.enter()
-        Transaction.anchor { result in
-            tx.last_tx = (try? result.get()) ?? ""
-            dispatchGroup.leave()
-        }
-
-        dispatchGroup.enter()
+        
+        tx.last_tx = try await Transaction.anchor()
         tx.data = rawData.base64URLEncodedString()
-        Transaction.price(for: self.priceRequest) { result in
-            tx.reward = (try? String(describing: result.get())) ?? ""
-            dispatchGroup.leave()
-        }
-
-        dispatchGroup.wait()
+        
+        let priceAmount = try await Transaction.price(for: priceRequest)
+        tx.reward = String(describing: priceAmount)
 
         tx.owner = wallet.ownerModulus
         let signedMessage = try wallet.sign(tx.signatureBody())
@@ -83,19 +71,13 @@ public extension Transaction {
         return tx
     }
 
-    func commit(completion: @escaping (VoidResult) -> ()) throws {
+    func commit() async throws {
         guard !signature.isEmpty else {
-            completion(.failure("Missing signature on transaction."))
-            return
+            throw "Missing signature on transaction."
         }
 
-        HttpClient.request(API(route: .commit(self))) { result in
-            guard let tx = try? result.get(), tx.statusCode == 200 else {
-                completion(.failure("Failed to submit transaction"))
-                return
-            }
-            completion(.success)
-        }
+        let commit = API(route: .commit(self))
+        _ = try await HttpClient.request(commit)
     }
 
     private func signatureBody() -> Data {
@@ -116,84 +98,56 @@ public extension Transaction {
 public extension Transaction {
 
     typealias Response<T> = (Swift.Result<T, Error>) -> Void
-
+    
     enum VoidResult {
         case success
         case failure(Error)
     }
 
-    static func find(with txId: TransactionId,
-                     completion: @escaping Response<Transaction>) {
-
-        let target = API(route: .transaction(id: txId))
-        HttpClient.request(target) { result in
-            guard let tx = try? result.get().map(Transaction.self) else {
-                completion(.failure("Unexpected response type in: \(#function)"))
-                return
-            }
-            completion(.success(tx))
-        }
+    static func find(_ txId: TransactionId) async throws -> Transaction {
+        let findEndpoint = API(route: .transaction(id: txId))
+        let response = try await HttpClient.request(findEndpoint)
+        return try JSONDecoder().decode(Transaction.self, from: response.data)
     }
 
-    static func data(for txId: TransactionId,
-                     completion: @escaping Response<Base64EncodedString>) {
-
+    static func data(for txId: TransactionId) async throws -> Base64EncodedString {
         let target = API(route: .transactionData(id: txId))
-        HttpClient.request(target) { result in
-            guard let txData = try? result.get().mapString() else {
-                completion(.failure("Unexpected response type in: \(#function)"))
-                return
-            }
-            completion(.success(txData))
-        }
+        let response = try await HttpClient.request(target)
+        return String(decoding: response.data, as: UTF8.self)
     }
 
-    static func status(of txId: TransactionId,
-                       completion: @escaping Response<Transaction.Status>) {
+    static func status(of txId: TransactionId) async throws -> Transaction.Status {
 
         let target = API(route: .transactionStatus(id: txId))
-        HttpClient.request(target, shouldFilterStatusCodes: false) { result in
-            guard let response = try? result.get() else {
-                completion(.failure("Networking Error"))
-                return
-            }
-
-            var status: Transaction.Status
-            if response.statusCode == 200 {
-                guard let data = try? response.map(Transaction.Status.Data.self) else {
-                    completion(.failure("Unexpected response type in: \(#function)"))
-                    return
-                }
-                status = .accepted(data: data)
-            } else {
-                status = Transaction.Status(rawValue: .status(response.statusCode))!
-            }
-            completion(.success(status))
+        let response = try await HttpClient.request(target)
+        
+        var status: Transaction.Status
+        if response.statusCode == 200 {
+            let data = try JSONDecoder().decode(Transaction.Status.Data.self, from: response.data)
+            status = .accepted(data: data)
+        } else {
+            status = Transaction.Status(rawValue: .status(response.statusCode))!
         }
+        return status
     }
 
-    static func price(for request: Transaction.PriceRequest,
-                      completion: @escaping Response<Amount>) {
-
+    static func price(for request: Transaction.PriceRequest) async throws -> Amount {
         let target = API(route: .reward(request))
-        HttpClient.request(target, callbackQueue: queue) { result in
-            guard let cost = try? result.get().map(Double.self) else {
-                completion(.failure("Unexpected response type in: \(#function)"))
-                return
-            }
-            let price = Amount(value: cost, unit: .winston)
-            completion(.success(price))
+        let response = try await HttpClient.request(target)
+
+        let costString = String(decoding: response.data, as: UTF8.self)
+        guard let value = Double(costString) else {
+            throw "Invalid response"
         }
+        return Amount(value: value, unit: .winston)
     }
 
-    static func anchor(completion: @escaping Response<String>) {
-        HttpClient.request(API(route: .txAnchor), callbackQueue: queue) { result in
-            guard let anchor = try? result.get().mapString() else {
-                completion(.failure("Unexpected response type in: \(#function)"))
-                return
-            }
-            completion(.success(anchor))
-        }
+    static func anchor() async throws -> String {
+        let target = API(route: .txAnchor)
+        let response = try await HttpClient.request(target)
+        
+        let anchor = String(decoding: response.data, as: UTF8.self)
+        return anchor
     }
 }
 

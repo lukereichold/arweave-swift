@@ -1,31 +1,31 @@
 import Foundation
-import Moya
 
 extension String: Error { }
 
+struct HttpResponse {
+    let data: Data
+    let statusCode: Int
+}
+
 struct HttpClient {
-    static let provider = MoyaProvider<API>()
 
-    static func request(_ target: API,
-                        callbackQueue: DispatchQueue? = .none,
-                        shouldFilterStatusCodes: Bool = true,
-                        completion: @escaping (Result<Response, Error>) -> Void) {
-
-        provider.request(target, callbackQueue: callbackQueue) { result in
-            switch result {
-            case .success(let moyaResponse):
-                do {
-                    let response = shouldFilterStatusCodes ? try moyaResponse.filterSuccessfulStatusCodes() : moyaResponse
-                    completion(.success(response))
-                } catch {
-                    let error = NSError(domain: "com.arweave.sdk",
-                                        code: 0,
-                                        userInfo: [NSLocalizedDescriptionKey: "Bad response code: \(moyaResponse.statusCode)"])
-                    completion(.failure(error))
-                }
-            case .failure(let error):
-                completion(.failure(error))
-            }
+    static func request(_ target: API) async throws -> HttpResponse {
+        
+        var request = URLRequest(url: target.url)
+        request.httpMethod = target.method
+        request.httpBody = target.body
+        request.allHTTPHeaderFields = target.headers
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        let httpResponse = response as? HTTPURLResponse
+        let statusCode = httpResponse?.statusCode ?? 0
+        
+        if case .transactionStatus = target.route {}
+        else if statusCode != 200 {
+            throw "Bad response code \(statusCode)"
         }
+        
+        return HttpResponse(data: data, statusCode: statusCode)
     }
 }

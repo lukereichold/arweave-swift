@@ -7,6 +7,8 @@
 
 A lightweight Swift client for the Arweave blockchain, providing type safety for interacting with the Arweave API
 
+⚠️ _This `master` branch requires requires Xcode 13 / Swift 5.5. For stable versions, see the xx branch._
+
 ## Installation
 
 To install via [Swift Package Manager](https://swift.org/package-manager), add `Arweave` to your `Package.swift` file. Alternatively, [add it to your Xcode project directly](https://developer.apple.com/documentation/xcode/adding_package_dependencies_to_your_app).
@@ -57,9 +59,7 @@ wallet.address
 
 All wallet balances are returned using [winston](https://docs.arweave.org/developers/server/http-api#ar-and-winston) units. 
 ```swift
-wallet.balance { result in
-    let balance: Amount = try? result.get()
-}
+let balance = try await wallet.balance()
 ```
 
 #### Convert amounts between AR and winston units
@@ -76,9 +76,7 @@ XCTAssertEqual(amtInAR.value, 0.000000000002, accuracy: 0e-12) // ✅
 #### Fetch the last transaction ID for a given wallet (async)
 
 ```swift
-wallet.lastTransactionId { result in
-    let lastTxId: TransactionId = try? result.get()
-}
+let lastTxId = try await wallet.lastTransactionId()
 ```
 
 ### Transactions
@@ -117,16 +115,10 @@ transaction.tags.append(tag)
 The data and wallet-to-wallet transaction initializers above simply create an unsigned `Transaction` object. To be submitted to the network, however, each `Transaction` must first be signed.
 
 ```swift
-let signed: Transaction = try transaction.sign(with: wallet)
 
-try signed.commit { committedTxResult in
-    switch committedTxResult {
-    case .success:
-        // Tx submitted successfully
-    case .failure(error):
-        // Handle error appropriately
-    }
-}
+let transaction = Transaction(data: data)
+let signedTx = try await transaction.sign(with: wallet)
+try await signed.commit()
 ```
 
 
@@ -137,19 +129,15 @@ The transaction ID is a hash of the transaction signature, so a transaction ID c
 #### Get a Transaction status (async)
 
 ```swift
-Transaction.status(of: exampleTxId) { result in
-    let status: Transaction.Status = try? result.get()
+let txStatus = try await Transaction.status(of: exampleTxId)
 
-    /// Arweave.Transaction.Status.accepted(data: Arweave.Transaction.Status.Data(block_height: 502761, block_indep_hash: "V6pCKSyeQiqICWKM2G_zkQ8SCA_WKnZoVGOD8eKFV_xozoWS9xPFgncxnMWjtFao", number_of_confirmations: 8655))
-}
+/// Arweave.Transaction.Status.accepted(data: Arweave.Transaction.Status.Data(block_height: 502761, block_indep_hash: "V6pCKSyeQiqICWKM2G_zkQ8SCA_WKnZoVGOD8eKFV_xozoWS9xPFgncxnMWjtFao", number_of_confirmations: 8655))
 ```
 
 #### Fetch Transaction content for a given ID (async)
 
 ```swift
-Transaction.find(with: exampleTxId) { result in
-    let tx: Transaction = try? result.get()
-}
+let tx = try await Transaction.find(exampleTxId)
 ```
 
 #### Fetch Transaction data (async)
@@ -157,10 +145,7 @@ Transaction.find(with: exampleTxId) { result in
 We can get the transaction data (represented as a base64 URL encoded string) for a given transaction ID without having to fetch the entire Transaction object.
 
 ```swift
-Transaction.data(for: lastTx!) { result in
-    guard let dataString = try? result.get() else { return }
-    let data = Data(base64URLEncoded: dataString)
-}
+let txData = try await Transaction.data(for: exampleTxId)
 ```
 
 ## Contribute

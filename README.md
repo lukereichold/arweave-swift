@@ -7,7 +7,7 @@
 
 A lightweight Swift client for the Arweave blockchain, providing type safety for interacting with the Arweave API
 
-⚠️ _This `master` branch requires requires Xcode 13 / Swift 5.5. For stable versions, see the xx branch._
+⚠️ _This `master` branch requires requires Xcode 13 / Swift 5.5. For supporting older versions, see the [stable branch](https://github.com/lukereichold/arweave-swift/tree/stable)._
 
 ## Installation
 

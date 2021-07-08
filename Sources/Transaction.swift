@@ -97,13 +97,6 @@ public extension Transaction {
 
 public extension Transaction {
 
-    typealias Response<T> = (Swift.Result<T, Error>) -> Void
-    
-    enum VoidResult {
-        case success
-        case failure(Error)
-    }
-
     static func find(_ txId: TransactionId) async throws -> Transaction {
         let findEndpoint = API(route: .transaction(id: txId))
         let response = try await HttpClient.request(findEndpoint)

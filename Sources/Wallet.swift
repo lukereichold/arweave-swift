@@ -2,8 +2,8 @@ import Foundation
 import JOSESwift
 import CryptoKit
 
-public struct Wallet {
-
+public struct Wallet: Codable {
+    
     public let key: RSAPrivateKey
     public var ownerModulus: String
     public var address: Address
@@ -51,7 +51,7 @@ public struct Wallet {
     }
 }
 
-public struct Address: Equatable, CustomStringConvertible {
+public struct Address: Codable, Equatable, CustomStringConvertible {
     public let address: String
     public var description: String { address }
 

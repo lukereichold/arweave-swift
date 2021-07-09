@@ -2,16 +2,9 @@ import SwiftUI
 import Arweave
 
 struct WalletsView: View {
-    
+    @State private var showingAlert = false
     @State private var showingFilePicker = false
-    @State private var newWallet: Data?
     @ObservedObject var model: WalletPersistence
-
-    func persistWallet() {
-        guard let newData = newWallet else { return }
-        guard let wallet = try? Wallet(jwkFileData: newData) else { return }
-        try? model.add(wallet)
-    }
     
     var body: some View {
         NavigationView {
@@ -19,7 +12,6 @@ struct WalletsView: View {
             .navigationTitle("Wallets")
             .toolbar {
                 Button(action: {
-                    print("Button was tapped")
                     showingFilePicker.toggle()
                 }) {
                     Image(systemName: "doc.fill.badge.plus")
@@ -29,8 +21,19 @@ struct WalletsView: View {
                 .foregroundStyle(.orange, .tint)
             }
         }
-        .sheet(isPresented: $showingFilePicker, onDismiss: persistWallet) {
-            DocumentPicker(fileContent: self.$newWallet)
+        .sheet(isPresented: $showingFilePicker) {
+            DocumentPicker() { data in
+                do {
+                    let wallet = try Wallet(jwkFileData: data)
+                    try model.add(wallet)
+                } catch {
+                    showingAlert = true
+                }
+            }
+        }
+        .alert("Unable to create wallet for the specified keyfile.",
+               isPresented: $showingAlert) {
+            Button("OK", role: .cancel) { }
         }
     }
     

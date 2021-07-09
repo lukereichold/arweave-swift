@@ -12,23 +12,27 @@ struct DocumentPicker: UIViewControllerRepresentable {
         func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
             let fileUrl = urls[0]
             do {
-                parent.fileContent = try Data(contentsOf: fileUrl)
+                let fileContent = try Data(contentsOf: fileUrl)
+                parent.onPick(fileContent)
             } catch {
                 print(error.localizedDescription)
             }
-            parent.presentationMode.wrappedValue.dismiss()
         }
     }
     
-    @Environment(\.presentationMode) var presentationMode
-    @Binding var fileContent: Data?
- 
+    private let onPick: (Data) -> ()
+    
+    init(onPick: @escaping (Data) -> Void) {
+        self.onPick = onPick
+    }
+    
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
     
     func makeUIViewController(context: UIViewControllerRepresentableContext<DocumentPicker>) -> UIDocumentPickerViewController {
         let controller = UIDocumentPickerViewController(forOpeningContentTypes: [.json], asCopy: true)
+        
         controller.delegate = context.coordinator
         return controller
     }

@@ -10,7 +10,7 @@ struct MainView: View {
                 .tabItem {
                     Label("Wallets", systemImage: "wallet.pass")
                 }
-            TransactionsView(wallets: wallets)
+            TransactionsView(model: wallets)
                 .tabItem {
                     Label("Transactions", systemImage: "arrowshape.zigzag.right.fill")
                 }

@@ -1,15 +1,21 @@
-//
-//  MainView.swift
-//  Demo
-//
-//  Created by Luke Reichold on 6/28/21.
-//
-
 import SwiftUI
 
 struct MainView: View {
+    
+    let wallets = WalletPersistence()
+    
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        TabView {
+            WalletsView(model: wallets)
+                .tabItem {
+                    Label("Wallets", systemImage: "wallet.pass")
+                }
+            TransactionsView(wallets: wallets)
+                .tabItem {
+                    Label("Transactions", systemImage: "arrowshape.zigzag.right.fill")
+                }
+        }
+        .accentColor(.indigo)
     }
 }
 

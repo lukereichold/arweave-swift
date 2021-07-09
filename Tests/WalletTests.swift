@@ -13,7 +13,7 @@ final class WalletTests: XCTestCase {
               let keyData = try? Data(contentsOf: keyPath)
         else { return }
         
-        WalletTests.wallet = Wallet(jwkFileData: keyData)
+        WalletTests.wallet = try? Wallet(jwkFileData: keyData)
         
         XCTAssertNotNil(WalletTests.wallet)
         XCTAssertEqual(WalletTests.walletAddress, WalletTests.wallet?.address)

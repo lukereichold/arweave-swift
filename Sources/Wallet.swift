@@ -2,17 +2,41 @@ import Foundation
 import JOSESwift
 import CryptoKit
 
-public struct Wallet: Codable {
+public struct Wallet: Codable, Hashable, Comparable {
     
     public let key: RSAPrivateKey
+    public let keyData: Data
     public var ownerModulus: String
     public var address: Address
 
-    public init?(jwkFileData: Data) {
-        guard let jwk = try? RSAPrivateKey(data: jwkFileData) else { return nil }
+    private enum CodingKeys: String, CodingKey {
+        case keyData, ownerModulus, address
+    }
+    
+    public static func < (lhs: Wallet, rhs: Wallet) -> Bool {
+        lhs.address < rhs.address
+    }
+    
+    public static func == (lhs: Wallet, rhs: Wallet) -> Bool {
+        lhs.address == rhs.address
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(keyData)
+    }
+    
+    public init(jwkFileData: Data) throws {
+        let jwk = try RSAPrivateKey(data: jwkFileData)
         key = jwk
+        keyData = jwkFileData
         ownerModulus = key.modulus
         address = Address(from: key.modulus)
+    }
+        
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let data = try container.decode(Data.self, forKey: .keyData)
+        try self.init(jwkFileData: data)
     }
     
     public func balance() async throws -> Amount {
@@ -51,12 +75,17 @@ public struct Wallet: Codable {
     }
 }
 
-public struct Address: Codable, Equatable, CustomStringConvertible {
+public struct Address: Hashable, Codable, Equatable, Comparable, CustomStringConvertible {
+    
     public let address: String
     public var description: String { address }
 
     public init(address: String) {
         self.address = address
+    }
+    
+    public static func < (lhs: Address, rhs: Address) -> Bool {
+        lhs.address < rhs.address
     }
 }
 

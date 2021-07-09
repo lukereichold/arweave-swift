@@ -31,7 +31,7 @@ import Arweave
 
 ## Demo
 
-See the included demo app, which dynamically creates a `Wallet` object from an existing Arweave JWK keyfile and uses an [iOS share extension](https://developer.apple.com/design/human-interface-guidelines/ios/extensions/sharing-and-actions/) to create and submit a new data transaction containing the data of a given page in Safari.
+See the included demo app, written in [SwiftUI](https://developer.apple.com/xcode/swiftui/), which dynamically creates a `Wallet` object from an existing Arweave JWK keyfile and uses an [iOS share extension](https://developer.apple.com/design/human-interface-guidelines/ios/extensions/sharing-and-actions/) to create and submit a new data transaction containing the data of a given page in Safari.
 
 ![](demo.gif)
 

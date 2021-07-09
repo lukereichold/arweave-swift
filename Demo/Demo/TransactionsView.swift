@@ -1,20 +1,22 @@
-//
-//  SwiftUIView.swift
-//  
-//
-//  Created by Luke Reichold on 7/8/21.
-//
-
 import SwiftUI
+import Arweave
 
-struct SwiftUIView: View {
+struct TransactionsView: View {
+    
+    @State private var showingFilePicker = false
+    @State private var walletData: Data?
+    @ObservedObject var wallets: WalletPersistence
+    
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        NavigationView {
+            Text("Transactions!")
+            .navigationTitle("Transactions")
+        }
     }
 }
 
-struct SwiftUIView_Previews: PreviewProvider {
+struct TransactionsView_Previews: PreviewProvider {
     static var previews: some View {
-        SwiftUIView()
+        TransactionsView(wallets: WalletPersistence())
     }
 }

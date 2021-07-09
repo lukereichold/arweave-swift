@@ -11,7 +11,7 @@ final class TransactionTests: XCTestCase {
               let data = try? Data(contentsOf: keyPath)
         else { return }
         
-        TransactionTests.wallet = Wallet(jwkFileData: data)
+        TransactionTests.wallet = try? Wallet(jwkFileData: data)
         XCTAssertNotNil(TransactionTests.wallet)
     }
 

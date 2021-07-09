@@ -15,7 +15,7 @@ To install via [Swift Package Manager](https://swift.org/package-manager), add `
 let package = Package(
     ...
     dependencies: [
-        .package(url: "https://github.com/lukereichold/arweave-swift.git", from: "1.1.0")
+        .package(url: "https://github.com/lukereichold/arweave-swift.git", .branch("stable"))
     ],
     ...
 )

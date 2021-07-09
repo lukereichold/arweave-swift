@@ -1,5 +1,6 @@
 import Foundation
 import Arweave
+import KeychainAccess
 
 var keychain: Keychain? = {
     guard let appIdPrefix = Bundle.main.infoDictionary!["AppIdentifierPrefix"] as? String else { return nil }

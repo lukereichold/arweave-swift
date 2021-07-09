@@ -8,10 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		C308535E269426CE00DF4963 /* DocumentPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = C308535D269426CE00DF4963 /* DocumentPicker.swift */; };
-		C31AC3F22696CAE000939447 /* Keychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3A439092696C9D4002C46A1 /* Keychain.swift */; };
 		C31AC3F4269701CB00939447 /* WalletPersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = C31AC3F3269701CB00939447 /* WalletPersistence.swift */; };
 		C31AC3F82697909F00939447 /* TransactionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C31AC3F72697909F00939447 /* TransactionsView.swift */; };
-		C3A4390A2696C9D4002C46A1 /* Keychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3A439092696C9D4002C46A1 /* Keychain.swift */; };
+		C31AC3FE2697DC5500939447 /* KeychainAccess in Frameworks */ = {isa = PBXBuildFile; productRef = C31AC3FD2697DC5500939447 /* KeychainAccess */; };
 		C3B766A32696B20D002C4F31 /* Arweave in Frameworks */ = {isa = PBXBuildFile; productRef = C3B766A22696B20D002C4F31 /* Arweave */; };
 		C3B766AB2696B38B002C4F31 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3B766AA2696B38B002C4F31 /* ShareViewController.swift */; };
 		C3B766AE2696B38B002C4F31 /* MainInterface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = C3B766AC2696B38B002C4F31 /* MainInterface.storyboard */; };
@@ -53,7 +52,6 @@
 		C31AC3F72697909F00939447 /* TransactionsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TransactionsView.swift; sourceTree = "<group>"; };
 		C31AC3F92697B2A700939447 /* Demo.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Demo.entitlements; sourceTree = "<group>"; };
 		C31AC3FB2697C81600939447 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		C3A439092696C9D4002C46A1 /* Keychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keychain.swift; sourceTree = "<group>"; };
 		C3B766A82696B38B002C4F31 /* Share.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = Share.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		C3B766AA2696B38B002C4F31 /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
 		C3B766AD2696B38B002C4F31 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/MainInterface.storyboard; sourceTree = "<group>"; };
@@ -79,6 +77,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C31AC3FE2697DC5500939447 /* KeychainAccess in Frameworks */,
 				C3B766A32696B20D002C4F31 /* Arweave in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -134,7 +133,6 @@
 				C31AC3F72697909F00939447 /* TransactionsView.swift */,
 				C308535D269426CE00DF4963 /* DocumentPicker.swift */,
 				C31AC3F3269701CB00939447 /* WalletPersistence.swift */,
-				C3A439092696C9D4002C46A1 /* Keychain.swift */,
 				C3EC1AB0268A80E80084851F /* Assets.xcassets */,
 				C3EC1AB2268A80E80084851F /* Preview Content */,
 			);
@@ -194,6 +192,7 @@
 			name = Demo;
 			packageProductDependencies = (
 				C3B766A22696B20D002C4F31 /* Arweave */,
+				C31AC3FD2697DC5500939447 /* KeychainAccess */,
 			);
 			productName = Demo;
 			productReference = C3EC1AA9268A80E60084851F /* Demo.app */;
@@ -227,6 +226,7 @@
 			);
 			mainGroup = C3EC1AA0268A80E60084851F;
 			packageReferences = (
+				C31AC3FC2697DC5500939447 /* XCRemoteSwiftPackageReference "KeychainAccess" */,
 			);
 			productRefGroup = C3EC1AAA268A80E60084851F /* Products */;
 			projectDirPath = "";
@@ -264,7 +264,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				C3B766AB2696B38B002C4F31 /* ShareViewController.swift in Sources */,
-				C31AC3F22696CAE000939447 /* Keychain.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -278,7 +277,6 @@
 				C3EC1AAD268A80E60084851F /* DemoApp.swift in Sources */,
 				C31AC3F82697909F00939447 /* TransactionsView.swift in Sources */,
 				C31AC3F4269701CB00939447 /* WalletPersistence.swift in Sources */,
-				C3A4390A2696C9D4002C46A1 /* Keychain.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -574,7 +572,23 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		C31AC3FC2697DC5500939447 /* XCRemoteSwiftPackageReference "KeychainAccess" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/kishikawakatsumi/KeychainAccess";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
+		C31AC3FD2697DC5500939447 /* KeychainAccess */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C31AC3FC2697DC5500939447 /* XCRemoteSwiftPackageReference "KeychainAccess" */;
+			productName = KeychainAccess;
+		};
 		C3B766A22696B20D002C4F31 /* Arweave */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Arweave;

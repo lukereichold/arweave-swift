@@ -11,8 +11,11 @@
 		C31AC3F4269701CB00939447 /* WalletPersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = C31AC3F3269701CB00939447 /* WalletPersistence.swift */; };
 		C31AC3F82697909F00939447 /* TransactionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C31AC3F72697909F00939447 /* TransactionsView.swift */; };
 		C31AC3FE2697DC5500939447 /* KeychainAccess in Frameworks */ = {isa = PBXBuildFile; productRef = C31AC3FD2697DC5500939447 /* KeychainAccess */; };
+		C31AC3FF26984A2600939447 /* WalletPersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = C31AC3F3269701CB00939447 /* WalletPersistence.swift */; };
+		C39B4E6326984C2D003386BE /* Arweave in Frameworks */ = {isa = PBXBuildFile; productRef = C39B4E6226984C2D003386BE /* Arweave */; };
+		C39B4E6526984C40003386BE /* KeychainAccess in Frameworks */ = {isa = PBXBuildFile; productRef = C39B4E6426984C40003386BE /* KeychainAccess */; };
 		C3B766A32696B20D002C4F31 /* Arweave in Frameworks */ = {isa = PBXBuildFile; productRef = C3B766A22696B20D002C4F31 /* Arweave */; };
-		C3B766AB2696B38B002C4F31 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3B766AA2696B38B002C4F31 /* ShareViewController.swift */; };
+		C3B766AB2696B38B002C4F31 /* ArchiveViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3B766AA2696B38B002C4F31 /* ArchiveViewController.swift */; };
 		C3B766AE2696B38B002C4F31 /* MainInterface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = C3B766AC2696B38B002C4F31 /* MainInterface.storyboard */; };
 		C3B766B22696B38B002C4F31 /* Share.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = C3B766A82696B38B002C4F31 /* Share.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		C3EC1AAD268A80E60084851F /* DemoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3EC1AAC268A80E60084851F /* DemoApp.swift */; };
@@ -53,7 +56,7 @@
 		C31AC3F92697B2A700939447 /* Demo.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Demo.entitlements; sourceTree = "<group>"; };
 		C31AC3FB2697C81600939447 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		C3B766A82696B38B002C4F31 /* Share.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = Share.appex; sourceTree = BUILT_PRODUCTS_DIR; };
-		C3B766AA2696B38B002C4F31 /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
+		C3B766AA2696B38B002C4F31 /* ArchiveViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchiveViewController.swift; sourceTree = "<group>"; };
 		C3B766AD2696B38B002C4F31 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/MainInterface.storyboard; sourceTree = "<group>"; };
 		C3B766AF2696B38B002C4F31 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		C3EC1AA9268A80E60084851F /* Demo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Demo.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -70,6 +73,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C39B4E6526984C40003386BE /* KeychainAccess in Frameworks */,
+				C39B4E6326984C2D003386BE /* Arweave in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -95,7 +100,7 @@
 		C3B766A92696B38B002C4F31 /* Share */ = {
 			isa = PBXGroup;
 			children = (
-				C3B766AA2696B38B002C4F31 /* ShareViewController.swift */,
+				C3B766AA2696B38B002C4F31 /* ArchiveViewController.swift */,
 				C3B766AC2696B38B002C4F31 /* MainInterface.storyboard */,
 				C3B766AF2696B38B002C4F31 /* Info.plist */,
 			);
@@ -171,6 +176,10 @@
 			dependencies = (
 			);
 			name = Share;
+			packageProductDependencies = (
+				C39B4E6226984C2D003386BE /* Arweave */,
+				C39B4E6426984C40003386BE /* KeychainAccess */,
+			);
 			productName = Share;
 			productReference = C3B766A82696B38B002C4F31 /* Share.appex */;
 			productType = "com.apple.product-type.app-extension";
@@ -263,7 +272,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C3B766AB2696B38B002C4F31 /* ShareViewController.swift in Sources */,
+				C31AC3FF26984A2600939447 /* WalletPersistence.swift in Sources */,
+				C3B766AB2696B38B002C4F31 /* ArchiveViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -482,6 +492,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Demo/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Arweave;
 				INFOPLIST_KEY_CFBundleExecutable = Demo;
 				INFOPLIST_KEY_CFBundleName = Demo;
 				INFOPLIST_KEY_CFBundleVersion = 1;
@@ -495,7 +506,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.reikam.Demo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -518,6 +529,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Demo/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Arweave;
 				INFOPLIST_KEY_CFBundleExecutable = Demo;
 				INFOPLIST_KEY_CFBundleName = Demo;
 				INFOPLIST_KEY_CFBundleVersion = 1;
@@ -531,7 +543,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.reikam.Demo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -585,6 +597,15 @@
 
 /* Begin XCSwiftPackageProductDependency section */
 		C31AC3FD2697DC5500939447 /* KeychainAccess */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C31AC3FC2697DC5500939447 /* XCRemoteSwiftPackageReference "KeychainAccess" */;
+			productName = KeychainAccess;
+		};
+		C39B4E6226984C2D003386BE /* Arweave */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Arweave;
+		};
+		C39B4E6426984C40003386BE /* KeychainAccess */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = C31AC3FC2697DC5500939447 /* XCRemoteSwiftPackageReference "KeychainAccess" */;
 			productName = KeychainAccess;

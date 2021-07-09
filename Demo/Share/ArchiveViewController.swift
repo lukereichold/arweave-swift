@@ -1,20 +1,12 @@
 import UIKit
 import Social
-import KeychainAccess
 import Arweave
 import MobileCoreServices
 
 class ArchiveViewController: SLComposeServiceViewController {
 
-    lazy var keychain: Keychain? = {
-        guard let appIdPrefix = Bundle.main.infoDictionary!["AppIdentifierPrefix"] as? String else { return nil }
-        return Keychain(service: "com.reikam.arweave-wallets", accessGroup: "\(appIdPrefix)com.reikam.shared")
-    }()
-
-    var wallets: [String] {
-        (keychain?.allKeys().sorted()) ?? []
-    }
-
+    let model = WalletPersistence()
+    
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         navigationController?.navigationBar.topItem?.rightBarButtonItem?.title = "Archive"
@@ -37,7 +29,7 @@ class ArchiveViewController: SLComposeServiceViewController {
                 guard let pdfUrl = url as? URL else { return }
                 guard let pdfData = try? Data(contentsOf: pdfUrl) else { return }
                 
-                detach {
+                async {
                     await self.uploadDataToArweave(data: pdfData)
                 }
             }
@@ -47,9 +39,7 @@ class ArchiveViewController: SLComposeServiceViewController {
     }
 
     private func uploadDataToArweave(data: Data) async {
-        guard let firstWalletKey = wallets.first else { return }
-        guard let walletData = try! keychain?.getData(firstWalletKey) else { return }
-        guard let wallet = Wallet(jwkFileData: walletData) else { return }
+        guard let wallet = model.wallets.first else { return }
 
         let tx = Transaction(data: data)
         do {

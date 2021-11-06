@@ -9,7 +9,7 @@ struct HttpResponse {
 
 struct HttpClient {
 
-    static func request(_ target: API.Request) async throws -> HttpResponse {
+    static func request(_ target: Arweave.Request) async throws -> HttpResponse {
         
         var request = URLRequest(url: target.url)
         request.httpMethod = target.method

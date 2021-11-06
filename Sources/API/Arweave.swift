@@ -1,7 +1,7 @@
 import Foundation
 
-public struct API {
-    static let shared = API()
+public struct Arweave {
+    static let shared = Arweave()
     private init() {}
     static var baseUrl = URL(string: "https://arweave.net")!
     
@@ -21,7 +21,7 @@ enum Route {
     case commit(Transaction)
 }
 
-extension API {
+extension Arweave {
     
     struct Request {
         

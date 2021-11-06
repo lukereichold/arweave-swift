@@ -40,7 +40,7 @@ public struct Wallet: Codable, Hashable, Comparable {
     }
     
     public func balance() async throws -> Amount {
-        let target = API.shared.request(for: .walletBalance(walletAddress: address))
+        let target = Arweave.shared.request(for: .walletBalance(walletAddress: address))
         let response = try await HttpClient.request(target)
         
         let respString = String(decoding: response.data, as: UTF8.self)
@@ -53,7 +53,7 @@ public struct Wallet: Codable, Hashable, Comparable {
     }
     
     public func lastTransactionId() async throws -> TransactionId {
-        let target = API.shared.request(for: .lastTransactionId(walletAddress: address))
+        let target = Arweave.shared.request(for: .lastTransactionId(walletAddress: address))
         let response = try await HttpClient.request(target)
 
         let lastTx = String(decoding: response.data, as: UTF8.self)

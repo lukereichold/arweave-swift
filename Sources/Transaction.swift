@@ -82,7 +82,7 @@ public extension Transaction {
             throw "Missing signature on transaction."
         }
 
-        let commit = API.shared.request(for: .commit(self))
+        let commit = Arweave.shared.request(for: .commit(self))
         _ = try await HttpClient.request(commit)
     }
 
@@ -104,20 +104,20 @@ public extension Transaction {
 public extension Transaction {
 
     static func find(_ txId: TransactionId) async throws -> Transaction {
-        let findEndpoint = API.shared.request(for: .transaction(id: txId))
+        let findEndpoint = Arweave.shared.request(for: .transaction(id: txId))
         let response = try await HttpClient.request(findEndpoint)
         return try JSONDecoder().decode(Transaction.self, from: response.data)
     }
 
     static func data(for txId: TransactionId) async throws -> Base64EncodedString {
-        let target = API.shared.request(for: .transactionData(id: txId))
+        let target = Arweave.shared.request(for: .transactionData(id: txId))
         let response = try await HttpClient.request(target)
         return String(decoding: response.data, as: UTF8.self)
     }
 
     static func status(of txId: TransactionId) async throws -> Transaction.Status {
 
-        let target = API.shared.request(for: .transactionStatus(id: txId))
+        let target = Arweave.shared.request(for: .transactionStatus(id: txId))
         let response = try await HttpClient.request(target)
         
         var status: Transaction.Status
@@ -131,7 +131,7 @@ public extension Transaction {
     }
 
     static func price(for request: Transaction.PriceRequest) async throws -> Amount {
-        let target = API.shared.request(for: .reward(request))
+        let target = Arweave.shared.request(for: .reward(request))
         let response = try await HttpClient.request(target)
 
         let costString = String(decoding: response.data, as: UTF8.self)
@@ -142,7 +142,7 @@ public extension Transaction {
     }
 
     static func anchor() async throws -> String {
-        let target = API.shared.request(for: .txAnchor)
+        let target = Arweave.shared.request(for: .txAnchor)
         let response = try await HttpClient.request(target)
         
         let anchor = String(decoding: response.data, as: UTF8.self)

@@ -30,7 +30,7 @@ final class WalletTests: XCTestCase {
     }
     
     func testCheckWalletBalance_UsingCustomHost() async throws {
-        API.baseUrl = URL(string: "https://arweave.net:443")!
+        Arweave.baseUrl = URL(string: "https://arweave.net:443")!
         let balance = try await WalletTests.wallet?.balance()
         XCTAssertNotNil(balance?.value)
     }

@@ -40,7 +40,7 @@ public struct Wallet: Codable, Hashable, Comparable {
     }
     
     public func balance() async throws -> Amount {
-        let target = API(route: .walletBalance(walletAddress: address))
+        let target = API.shared.request(for: .walletBalance(walletAddress: address))
         let response = try await HttpClient.request(target)
         
         let respString = String(decoding: response.data, as: UTF8.self)
@@ -53,7 +53,7 @@ public struct Wallet: Codable, Hashable, Comparable {
     }
     
     public func lastTransactionId() async throws -> TransactionId {
-        let target = API(route: .lastTransactionId(walletAddress: address))
+        let target = API.shared.request(for: .lastTransactionId(walletAddress: address))
         let response = try await HttpClient.request(target)
 
         let lastTx = String(decoding: response.data, as: UTF8.self)
@@ -89,7 +89,7 @@ public struct Address: Hashable, Codable, Equatable, Comparable, CustomStringCon
     }
 }
 
-extension Address {
+public extension Address {
     init(from modulus: String) {
         guard let data = Data(base64URLEncoded: modulus) else {
             preconditionFailure("Invalid base64 value for JWK public modulus (n) property.")

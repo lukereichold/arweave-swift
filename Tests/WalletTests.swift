@@ -28,6 +28,12 @@ final class WalletTests: XCTestCase {
         let balance = try await WalletTests.wallet?.balance()
         XCTAssertNotNil(balance?.value)
     }
+    
+    func testCheckWalletBalance_UsingCustomHost() async throws {
+        API.baseUrl = URL(string: "https://arweave.net:443")!
+        let balance = try await WalletTests.wallet?.balance()
+        XCTAssertNotNil(balance?.value)
+    }
 
     func testFetchLastTransactionId() async throws {
         let lastTxId = try await WalletTests.wallet?.lastTransactionId()

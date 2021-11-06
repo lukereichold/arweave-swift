@@ -1,15 +1,15 @@
 import Foundation
 
 @propertyWrapper
-struct NonNegative<T: Numeric & Comparable>: Equatable {
+public struct NonNegative<T: Numeric & Comparable>: Equatable {
     var value: T
 
-    var wrappedValue: T {
+    public var wrappedValue: T {
         get { value }
         set { value = max(0, newValue) }
     }
 
-    init(wrappedValue: T) {
+    public init(wrappedValue: T) {
         self.value = max(0, wrappedValue)
     }
 }

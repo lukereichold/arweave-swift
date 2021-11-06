@@ -2,10 +2,15 @@ import Foundation
 
 public struct Amount: Equatable {
     
-    @NonNegative var value: Double
-    var unit: Unit
+    @NonNegative public var value: Double
+    public var unit: Unit
     
-    func converted(to targetUnit: Unit) -> Amount {
+    public init(value: Double, unit: Amount.Unit) {
+        self.value = value
+        self.unit = unit
+    }
+    
+    public func converted(to targetUnit: Unit) -> Amount {
         
         guard unit != targetUnit else { return self }
         

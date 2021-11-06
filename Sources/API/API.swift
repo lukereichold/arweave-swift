@@ -1,8 +1,13 @@
 import Foundation
 
-struct API {
-    static var host: URL?
-    let route: Route
+public struct API {
+    static let shared = API()
+    private init() {}
+    static var baseUrl = URL(string: "https://arweave.net")!
+    
+    func request(for route: Route) -> Request {
+        return Request(route: route)
+    }
 }
 
 enum Route {
@@ -17,56 +22,58 @@ enum Route {
 }
 
 extension API {
-    var baseURL: URL {
-        API.host ?? URL(string: "https://arweave.net")!
-    }
     
-    var path: String {
-        switch route {
-        case .txAnchor:
-            return "/tx_anchor"
-        case let .transaction(id):
-            return "/tx/\(id)"
-        case let .transactionData(id):
-            return "/tx/\(id)/data"
-        case let .transactionStatus(id):
-            return "/tx/\(id)/status"
-        case let .lastTransactionId(walletAddress):
-            return "/wallet/\(walletAddress)/last_tx"
-        case let .walletBalance(walletAddress):
-            return "/wallet/\(walletAddress)/balance"
-        case let .reward(request):
-            var path = "/price/\(String(request.bytes))"
-            if let target = request.target {
-                path.append("/\(target.address)")
+    struct Request {
+        
+        var route: Route
+        
+        var path: String {
+            switch route {
+            case .txAnchor:
+                return "/tx_anchor"
+            case let .transaction(id):
+                return "/tx/\(id)"
+            case let .transactionData(id):
+                return "/tx/\(id)/data"
+            case let .transactionStatus(id):
+                return "/tx/\(id)/status"
+            case let .lastTransactionId(walletAddress):
+                return "/wallet/\(walletAddress)/last_tx"
+            case let .walletBalance(walletAddress):
+                return "/wallet/\(walletAddress)/balance"
+            case let .reward(request):
+                var path = "/price/\(String(request.bytes))"
+                if let target = request.target {
+                    path.append("/\(target.address)")
+                }
+                return path
+            case .commit:
+                return "/tx"
             }
-            return path
-        case .commit:
-            return "/tx"
         }
-    }
-    
-    var url: URL {
-        baseURL.appendingPathComponent(path)
-    }
-    
-    var method: String {
-        if case Route.commit = route {
-            return "post"
-        } else {
-            return "get"
+        
+        var url: URL {
+            baseUrl.appendingPathComponent(path)
         }
-    }
-
-    var body: Data? {
-        if case let Route.commit(transaction) = route {
-            return try? JSONEncoder().encode(transaction)
-        } else {
-            return nil
+        
+        var method: String {
+            if case Route.commit = route {
+                return "post"
+            } else {
+                return "get"
+            }
         }
-    }
-    
-    var headers: [String: String]? {
-        ["Content-type": "application/json"]
+        
+        var body: Data? {
+            if case let Route.commit(transaction) = route {
+                return try? JSONEncoder().encode(transaction)
+            } else {
+                return nil
+            }
+        }
+        
+        var headers: [String: String]? {
+            ["Content-type": "application/json"]
+        }
     }
 }

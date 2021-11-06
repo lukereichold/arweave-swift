@@ -7,8 +7,14 @@ public typealias Base64EncodedString = String
 public extension Transaction {
 
     struct PriceRequest {
-        var bytes: Int = 0
-        var target: Address?
+        
+        public init(bytes: Int = 0, target: Address? = nil) {
+            self.bytes = bytes
+            self.target = target
+        }
+        
+        public var bytes: Int = 0
+        public var target: Address?
     }
 
     struct Tag: Codable {
@@ -37,7 +43,7 @@ public struct Transaction: Codable {
         case id, last_tx, owner, tags, target, quantity, data, reward, signature
     }
 
-    var priceRequest: PriceRequest {
+    public var priceRequest: PriceRequest {
         PriceRequest(bytes: rawData.count, target: Address(address: target))
     }
 
@@ -76,7 +82,7 @@ public extension Transaction {
             throw "Missing signature on transaction."
         }
 
-        let commit = API(route: .commit(self))
+        let commit = API.shared.request(for: .commit(self))
         _ = try await HttpClient.request(commit)
     }
 
@@ -98,20 +104,20 @@ public extension Transaction {
 public extension Transaction {
 
     static func find(_ txId: TransactionId) async throws -> Transaction {
-        let findEndpoint = API(route: .transaction(id: txId))
+        let findEndpoint = API.shared.request(for: .transaction(id: txId))
         let response = try await HttpClient.request(findEndpoint)
         return try JSONDecoder().decode(Transaction.self, from: response.data)
     }
 
     static func data(for txId: TransactionId) async throws -> Base64EncodedString {
-        let target = API(route: .transactionData(id: txId))
+        let target = API.shared.request(for: .transactionData(id: txId))
         let response = try await HttpClient.request(target)
         return String(decoding: response.data, as: UTF8.self)
     }
 
     static func status(of txId: TransactionId) async throws -> Transaction.Status {
 
-        let target = API(route: .transactionStatus(id: txId))
+        let target = API.shared.request(for: .transactionStatus(id: txId))
         let response = try await HttpClient.request(target)
         
         var status: Transaction.Status
@@ -125,7 +131,7 @@ public extension Transaction {
     }
 
     static func price(for request: Transaction.PriceRequest) async throws -> Amount {
-        let target = API(route: .reward(request))
+        let target = API.shared.request(for: .reward(request))
         let response = try await HttpClient.request(target)
 
         let costString = String(decoding: response.data, as: UTF8.self)
@@ -136,7 +142,7 @@ public extension Transaction {
     }
 
     static func anchor() async throws -> String {
-        let target = API(route: .txAnchor)
+        let target = API.shared.request(for: .txAnchor)
         let response = try await HttpClient.request(target)
         
         let anchor = String(decoding: response.data, as: UTF8.self)

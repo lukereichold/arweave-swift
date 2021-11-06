@@ -38,6 +38,14 @@ See the included demo app, written in [SwiftUI](https://developer.apple.com/xcod
 
 ## Usage
 
+### Specify Custom Arweave Node (optional)
+
+```swift
+Arweave.baseUrl = URL(string: "https://myArweaveNode.net:443")!
+```
+
+Craft a custom `URL` to specify host, port, and protocol of target node. All subsequent requests will automatically be made to this custom host.
+
 ### Wallets and Keys
 
 #### Creating a Wallet from an existing JWK keyfile

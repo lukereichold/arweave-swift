@@ -3,7 +3,7 @@ import Foundation
 public struct Arweave {
     static let shared = Arweave()
     private init() {}
-    static var baseUrl = URL(string: "https://arweave.net")!
+    public static var baseUrl = URL(string: "https://arweave.net")!
     
     func request(for route: Route) -> Request {
         return Request(route: route)

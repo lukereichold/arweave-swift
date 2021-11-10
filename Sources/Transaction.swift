@@ -1,6 +1,12 @@
 import Foundation
 import CryptoKit
 
+public struct Chunks {
+    let data_root: Data
+    let chunks: [Chunk]
+    let proofs: [Proof]
+}
+
 public typealias TransactionId = String
 public typealias Base64EncodedString = String
 
@@ -29,18 +35,22 @@ public extension Transaction {
 }
 
 public struct Transaction: Codable {
+    public var format = 2
     public var id: TransactionId = ""
     public var last_tx: TransactionId = ""
     public var owner: String = ""
     public var tags = [Tag]()
     public var target: String = ""
     public var quantity: String = "0"
-    public var data: String = ""
+    public var data: String? = "" // do not remove optional. decode will fail if data comes back empty
+    public var data_root: String = ""
+    public var data_size: Int = 0
     public var reward: String = ""
     public var signature: String = ""
+    public var chunks: Chunks? = nil
 
     private enum CodingKeys: String, CodingKey {
-        case id, last_tx, owner, tags, target, quantity, data, reward, signature
+        case format, id, last_tx, owner, tags, target, quantity, data, data_root, data_size, reward, signature
     }
 
     public var priceRequest: PriceRequest {
@@ -70,31 +80,35 @@ public extension Transaction {
         tx.reward = String(describing: priceAmount)
 
         tx.owner = wallet.ownerModulus
-        let signedMessage = try wallet.sign(tx.signatureBody())
+        let signedMessage = try wallet.sign(try await tx.signatureBody())
         tx.signature = signedMessage.base64URLEncodedString()
         tx.id = SHA256.hash(data: signedMessage).data
             .base64URLEncodedString()
         return tx
     }
 
-    func commit() async throws {
+    func commit() async throws -> HttpResponse {
         guard !signature.isEmpty else {
             throw "Missing signature on transaction."
         }
 
         let commit = Arweave.shared.request(for: .commit(self))
-        _ = try await HttpClient.request(commit)
+        return try await HttpClient.request(commit)
     }
 
-    private func signatureBody() -> Data {
+    mutating private func signatureBody() async throws -> Data {
+        prepareChunks(data: self.rawData)
+        let last_tx = try await Transaction.anchor()
+        
         return [
+            withUnsafeBytes(of: format) { Data($0) },
             Data(base64URLEncoded: owner),
             Data(base64URLEncoded: target),
-            rawData,
             quantity.data(using: .utf8),
             reward.data(using: .utf8),
             Data(base64URLEncoded: last_tx),
-            tags.combined.data(using: .utf8)
+            tags.combined.data(using: .utf8),
+            withUnsafeBytes(of: data_size) { Data($0) }
         ]
         .compactMap { $0 }
         .combined
@@ -102,6 +116,17 @@ public extension Transaction {
 }
 
 public extension Transaction {
+    mutating func prepareChunks(data: Data) {
+        if self.chunks == nil && data.count > 0 {
+            self.chunks = generateTransactionChunks(data: data)
+            self.data_root = bufferTob64Url(buffer: self.chunks!.data_root)
+        }
+        
+        if self.chunks == nil && data.count == 0 {
+            self.chunks = Chunks(data_root: Data(), chunks: [Chunk](), proofs: [Proof]())
+            self.data_root = ""
+        }
+    }
 
     static func find(_ txId: TransactionId) async throws -> Transaction {
         let findEndpoint = Arweave.shared.request(for: .transaction(id: txId))
@@ -113,6 +138,7 @@ public extension Transaction {
         let target = Arweave.shared.request(for: .transactionData(id: txId))
         let response = try await HttpClient.request(target)
         return String(decoding: response.data, as: UTF8.self)
+        //return response.data.base64EncodedString()
     }
 
     static func status(of txId: TransactionId) async throws -> Transaction.Status {

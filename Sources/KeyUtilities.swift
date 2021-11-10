@@ -6,9 +6,14 @@ extension Digest {
     var data: Data { Data(bytes) }
 }
 
-extension String {
+public extension String {
     var base64URLEncoded: String {
         Data(utf8).base64URLEncodedString()
+    }
+    
+    var base64URLDecoded: String {
+        guard let data = Data(base64URLEncoded: self) else { return "" }
+        return String(data: data, encoding: .utf8) ?? ""
     }
 }
 

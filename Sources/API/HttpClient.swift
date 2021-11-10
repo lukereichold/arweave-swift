@@ -2,7 +2,7 @@ import Foundation
 
 extension String: Error { }
 
-struct HttpResponse {
+public struct HttpResponse {
     let data: Data
     let statusCode: Int
 }
@@ -14,7 +14,9 @@ struct HttpClient {
         var request = URLRequest(url: target.url)
         request.httpMethod = target.method
         request.httpBody = target.body
-        request.allHTTPHeaderFields = target.headers
+        if request.httpMethod?.uppercased() == "POST" {
+            request.allHTTPHeaderFields = target.headers
+        }
         
         let (data, response) = try await URLSession.shared.data(for: request)
         

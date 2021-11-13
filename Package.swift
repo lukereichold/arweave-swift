@@ -15,13 +15,12 @@ let package = Package(
             targets: ["Arweave"])
     ],
     dependencies: [
-        .package(url: "https://github.com/lukereichold/JOSESwift.git", .upToNextMajor(from: "2.2.4")),
-        .package(url: "https://github.com/apple/swift-algorithms", from: "1.0.0"),
+        .package(url: "https://github.com/lukereichold/JOSESwift.git", .upToNextMajor(from: "2.2.4"))
     ],
     targets: [
         .target(
             name: "Arweave",
-            dependencies: ["JOSESwift", .product(name: "Algorithms", package: "swift-algorithms")],
+            dependencies: ["JOSESwift"],
             path: "Sources"),
         .testTarget(
             name: "ArweaveTests",

@@ -115,7 +115,7 @@ public extension Transaction {
         
         let last_tx = try await Transaction.anchor()
         
-        return [
+        return deepHash(buffers: [
             withUnsafeBytes(of: format) { Data($0) },
             Data(base64URLEncoded: owner),
             Data(base64URLEncoded: target),
@@ -125,9 +125,7 @@ public extension Transaction {
             tags.combined.data(using: .utf8),
             withUnsafeBytes(of: data_size) { Data($0) },
             Data(base64URLEncoded: data_root)
-        ]
-        .compactMap { $0 }
-        .combined
+        ].compactMap { $0 })
     }
 }
 

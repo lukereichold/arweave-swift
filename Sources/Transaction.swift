@@ -44,10 +44,11 @@ public struct Transaction: Codable {
     public var quantity: String = "0"
     
     // For v2 transactions, `data` is *not* part of the submitted payload.
-    public var data: String = "" // do not remove optional. decode will fail if data comes back empty
+    // do not remove optional. decode will fail if data comes back empty
+    public var data: String = ""
     
     public var data_root: String = ""
-    public var data_size: String = ""
+    public var data_size: String = "0"
     public var reward: String = ""
     public var signature: String = ""
     

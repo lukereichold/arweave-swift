@@ -35,22 +35,26 @@ public extension Transaction {
 }
 
 public struct Transaction: Codable {
-    public var format = 2
+    public let format = Format.v2
     public var id: TransactionId = ""
     public var last_tx: TransactionId = ""
     public var owner: String = ""
     public var tags = [Tag]()
     public var target: String = ""
     public var quantity: String = "0"
-    public var data: String? = "" // do not remove optional. decode will fail if data comes back empty
+    
+    // For v2 transactions, `data` is *not* part of the submitted payload.
+    public var data: String = "" // do not remove optional. decode will fail if data comes back empty
+    
     public var data_root: String = ""
-    public var data_size: Int = 0
+    public var data_size: String = ""
     public var reward: String = ""
     public var signature: String = ""
-    public var chunks: Chunks? = nil
+    
+    public var chunks: Chunks?
 
     private enum CodingKeys: String, CodingKey {
-        case format, id, last_tx, owner, tags, target, quantity, data, data_root, data_size, reward, signature
+        case format, id, last_tx, owner, tags, target, quantity, data, data_size, data_root, reward, signature
     }
 
     public var priceRequest: PriceRequest {
@@ -58,11 +62,17 @@ public struct Transaction: Codable {
     }
 
     public var rawData = Data()
+    
+    public enum Format: Int, Codable {
+        case v1 = 1
+        case v2 = 2
+    }
 }
 
 public extension Transaction {
     init(data: Data) {
         self.rawData = data
+        self.data_size = String(data.count)
     }
 
     init(amount: Amount, target: Address) {
@@ -97,7 +107,11 @@ public extension Transaction {
     }
 
     mutating private func signatureBody() async throws -> Data {
-        prepareChunks(data: self.rawData)
+        
+        if data_root.isEmpty {
+            prepareChunks(data: self.rawData)
+        }
+        
         let last_tx = try await Transaction.anchor()
         
         return [
@@ -108,7 +122,8 @@ public extension Transaction {
             reward.data(using: .utf8),
             Data(base64URLEncoded: last_tx),
             tags.combined.data(using: .utf8),
-            withUnsafeBytes(of: data_size) { Data($0) }
+            withUnsafeBytes(of: data_size) { Data($0) },
+            Data(base64URLEncoded: data_root)
         ]
         .compactMap { $0 }
         .combined
@@ -117,14 +132,14 @@ public extension Transaction {
 
 public extension Transaction {
     mutating func prepareChunks(data: Data) {
-        if self.chunks == nil && data.count > 0 {
-            self.chunks = generateTransactionChunks(data: data)
-            self.data_root = bufferTob64Url(buffer: self.chunks!.data_root)
+        if chunks == nil && data.count > 0 {
+            chunks = generateTransactionChunks(data: data)
+            data_root = chunks!.data_root.base64URLEncodedString()
         }
         
-        if self.chunks == nil && data.count == 0 {
-            self.chunks = Chunks(data_root: Data(), chunks: [Chunk](), proofs: [Proof]())
-            self.data_root = ""
+        if chunks == nil && data.count == 0 {
+            chunks = Chunks(data_root: Data(), chunks: [], proofs: [])
+            data_root = ""
         }
     }
 
@@ -138,7 +153,6 @@ public extension Transaction {
         let target = Arweave.shared.request(for: .transactionData(id: txId))
         let response = try await HttpClient.request(target)
         return String(decoding: response.data, as: UTF8.self)
-        //return response.data.base64EncodedString()
     }
 
     static func status(of txId: TransactionId) async throws -> Transaction.Status {

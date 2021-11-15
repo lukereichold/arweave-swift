@@ -1,6 +1,5 @@
 //
-//  File.swift
-//  
+//  Merkle.swift
 //
 //  Created by David Choi on 11/6/21.
 //
@@ -72,26 +71,27 @@ let HASH_SIZE = 32
 
 func chunkData(data: Data) -> [Chunk] {
     var chunks = [Chunk]()
-    
     var rest = data
     var cursor = 0
     
-    while(rest.count >= MAX_CHUNK_SIZE) {
+    while rest.count >= MAX_CHUNK_SIZE {
+        
         var chunkSize = MAX_CHUNK_SIZE
         
         let nextChunkSize = rest.count - MAX_CHUNK_SIZE
-        if (nextChunkSize > 0 && nextChunkSize < MIN_CHUNK_SIZE) {
-            chunkSize = Int(Double(rest.count / 2).rounded())
+        if nextChunkSize > 0 && nextChunkSize < MIN_CHUNK_SIZE {
+            chunkSize = Int(ceil(Double(rest.count) / 2))
         }
         
-        let chunk = rest.subdata(in: 0..<chunkSize)
+        let chunk = rest.subdata(in: 0 ..< chunkSize)
         let dataHash = SHA256.hash(data: chunk)
         cursor += chunk.count
         chunks.append(Chunk(dataHash: dataHash.data, minByteRange: cursor - chunk.count, maxByteRange: cursor))
         rest = rest.subdata(in: (chunkSize <= 0 ? 0 : chunkSize - 1)..<rest.count)
     }
     
-    chunks.append(Chunk(dataHash: SHA256.hash(data: rest).data, minByteRange: cursor, maxByteRange: cursor + rest.count))
+    let lastChunk = Chunk(dataHash: SHA256.hash(data: rest).data, minByteRange: cursor, maxByteRange: cursor + rest.count)
+    chunks.append(lastChunk)
     return chunks
 }
 
@@ -111,8 +111,8 @@ func generateLeaves(chunks: [Chunk]) -> [LeafNode] {
 }
 
 func hashId(data: [Data]) -> Data {
-    let data = concatBuffers(buffers: data)
-    return Data(SHA256.hash(data: data))
+    let allBuffers = data.compactMap { $0 }.combined
+    return Data(SHA256.hash(data: allBuffers))
 }
 
 func intToBuffer(note: Int) -> Data {
@@ -148,12 +148,10 @@ func generateTransactionChunks(data: Data) -> Chunks {
     let root = buildLayers(nodes: leaves)
     var proofs = generateProofs(root: root)
     
-    if chunks.count > 0 {
-        let lastChunk = chunks.last
-        if ((lastChunk!.maxByteRange - lastChunk!.minByteRange) == 0) {
-            chunks.remove(at: chunks.count - 1)
-            proofs.remove(at: proofs.count - 1)
-        }
+    if let lastChunk = chunks.last,
+       lastChunk.maxByteRange - lastChunk.minByteRange == 0 {
+        chunks.removeLast()
+        proofs.removeLast()
     }
     
     return Chunks(data_root: root.id, chunks: chunks, proofs: proofs)
@@ -173,7 +171,7 @@ func resolveBranchProofs(node: MerkelNode, proof: Data = Data(), depth: Int = 0)
     if node.type == BranchOrLeaf.leaf {
         let dataHash = (node as! LeafNode).dataHash
         return [
-            Proof(offset: node.maxByteRange - 1, proof: concatBuffers(buffers: [proof, dataHash, intToBuffer(note: node.maxByteRange)]))
+            Proof(offset: node.maxByteRange - 1, proof: [proof, dataHash, intToBuffer(note: node.maxByteRange)].compactMap{$0}.combined)
         ]
     }
     
@@ -190,7 +188,7 @@ func resolveBranchProofs(node: MerkelNode, proof: Data = Data(), depth: Int = 0)
         if let rightChild = branch.rightChild {
             buffers.append(rightChild.id)
         }
-        let partialProof = concatBuffers(buffers: buffers)
+        let partialProof = buffers.compactMap{$0}.combined
         
         var resolvedProofs = [[Proof]]()
         if let leftChild = branch.leftChild {

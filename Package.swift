@@ -19,7 +19,7 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "Arweave",
+            name: "Arweave",    
             dependencies: ["JOSESwift"],
             path: "Sources"),
         .testTarget(

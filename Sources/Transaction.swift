@@ -44,7 +44,7 @@ public struct Transaction: Codable {
     public var quantity: String = "0"
     public var data: String? = "" // do not remove optional. decode will fail if data comes back empty
     public var data_root: String = ""
-    public var data_size: Int = 0
+    public var data_size: String = "0"
     public var reward: String = ""
     public var signature: String = ""
     public var chunks: Chunks? = nil
@@ -80,6 +80,11 @@ public extension Transaction {
         tx.reward = String(describing: priceAmount)
 
         tx.owner = wallet.ownerModulus
+        tx.tags = tx.tags.map { tag in
+            Transaction.Tag(name: tag.name.base64URLEncoded, value: tag.value.base64URLEncoded)
+        }
+        tx.data_size = tx.data!.lengthOfBytes(using: .utf8).description
+        
         let signedMessage = try wallet.sign(try await tx.signatureBody())
         tx.signature = signedMessage.base64URLEncodedString()
         tx.id = SHA256.hash(data: signedMessage).data
@@ -100,18 +105,17 @@ public extension Transaction {
         prepareChunks(data: self.rawData)
         let last_tx = try await Transaction.anchor()
         
-        return [
-            withUnsafeBytes(of: format) { Data($0) },
-            Data(base64URLEncoded: owner),
-            Data(base64URLEncoded: target),
-            quantity.data(using: .utf8),
-            reward.data(using: .utf8),
-            Data(base64URLEncoded: last_tx),
-            tags.combined.data(using: .utf8),
-            withUnsafeBytes(of: data_size) { Data($0) }
-        ]
-        .compactMap { $0 }
-        .combined
+        return deepHash(data: [
+            format.description.data(using: .utf8)!,
+            Data(base64URLEncoded: owner)!,
+            Data(base64URLEncoded: target)!,
+            quantity.data(using: .utf8)!,
+            reward.data(using: .utf8)!,
+            Data(base64URLEncoded: last_tx)!,
+            tags.combined.data(using: .utf8)!,
+            data_size.data(using: .utf8)!,
+            data_root.data(using: .utf8)!
+        ])
     }
 }
 

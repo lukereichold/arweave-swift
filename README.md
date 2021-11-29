@@ -1,6 +1,6 @@
 # Arweave Client SDK for Swift
 
-![](https://img.shields.io/badge/Swift-5.5-orange.svg)
+[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Flukereichold%2Farweave-swift%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/lukereichold/arweave-swift)
 [![GitHub license](https://img.shields.io/badge/license-MIT-lightgrey.svg)](https://github.com/lukereichold/arweave-swift/blob/master/LICENSE) 
 [![SPM compatible](https://img.shields.io/badge/spm-compatible-brightgreen.svg?style=flat)](https://swift.org/package-manager)
 [![Twitter](https://img.shields.io/badge/twitter-@lreichold-blue.svg?style=flat)](https://twitter.com/lreichold)

@@ -1,8 +1,23 @@
 import Foundation
 import CryptoKit
 
+public struct Chunks {
+    let data_root: Data
+    let chunks: [Chunk]
+    let proofs: [Proof]
+}
+
 public typealias TransactionId = String
 public typealias Base64EncodedString = String
+public struct Tag: Codable {
+    public let name: String
+    public let value: String
+
+    public init(name: String, value: String) {
+        self.name = name
+        self.value = value
+    }
+}
 
 public extension Transaction {
 
@@ -16,31 +31,25 @@ public extension Transaction {
         public var bytes: Int = 0
         public var target: Address?
     }
-
-    struct Tag: Codable {
-        public let name: String
-        public let value: String
-
-        public init(name: String, value: String) {
-            self.name = name
-            self.value = value
-        }
-    }
 }
 
 public struct Transaction: Codable {
+    public var format = 2
     public var id: TransactionId = ""
     public var last_tx: TransactionId = ""
     public var owner: String = ""
     public var tags = [Tag]()
     public var target: String = ""
     public var quantity: String = "0"
-    public var data: String = ""
+    public var data: String? = "" // do not remove optional. decode will fail if data comes back empty
+    public var data_root: String = ""
+    public var data_size: String = "0"
     public var reward: String = ""
     public var signature: String = ""
+    public var chunks: Chunks? = nil
 
     private enum CodingKeys: String, CodingKey {
-        case id, last_tx, owner, tags, target, quantity, data, reward, signature
+        case format, id, last_tx, owner, tags, target, quantity, data, data_root, data_size, reward, signature
     }
 
     public var priceRequest: PriceRequest {
@@ -70,38 +79,57 @@ public extension Transaction {
         tx.reward = String(describing: priceAmount)
 
         tx.owner = wallet.ownerModulus
-        let signedMessage = try wallet.sign(tx.signatureBody())
+        tx.tags = tx.tags.map { tag in
+            Tag(name: tag.name.base64URLEncoded, value: tag.value.base64URLEncoded)
+        }
+        tx.data_size = tx.data!.lengthOfBytes(using: .utf8).description
+        
+        let signedMessage = try wallet.sign(try await tx.signatureBody())
         tx.signature = signedMessage.base64URLEncodedString()
         tx.id = SHA256.hash(data: signedMessage).data
             .base64URLEncodedString()
         return tx
     }
 
-    func commit() async throws {
+    func commit() async throws -> HttpResponse {
         guard !signature.isEmpty else {
             throw "Missing signature on transaction."
         }
 
         let commit = Arweave.shared.request(for: .commit(self))
-        _ = try await HttpClient.request(commit)
+        return try await HttpClient.request(commit)
     }
 
-    private func signatureBody() -> Data {
-        return [
-            Data(base64URLEncoded: owner),
-            Data(base64URLEncoded: target),
-            rawData,
-            quantity.data(using: .utf8),
-            reward.data(using: .utf8),
-            Data(base64URLEncoded: last_tx),
-            tags.combined.data(using: .utf8)
-        ]
-        .compactMap { $0 }
-        .combined
+    mutating private func signatureBody() async throws -> Data {
+        prepareChunks(data: self.rawData)
+        let last_tx = try await Transaction.anchor()
+        
+        return deepHash(data: DeepHashChunk.dataArray([
+            DeepHashChunk.data(format.description.data(using: .utf8)!),
+            DeepHashChunk.data(Data(base64URLEncoded: owner)!),
+            DeepHashChunk.data(Data(base64URLEncoded: target)!),
+            DeepHashChunk.data(quantity.data(using: .utf8)!),
+            DeepHashChunk.data(reward.data(using: .utf8)!),
+            DeepHashChunk.data(Data(base64URLEncoded: last_tx)!),
+            DeepHashChunk.data(tags.combined.data(using: .utf8)!),
+            DeepHashChunk.data(data_size.data(using: .utf8)!),
+            DeepHashChunk.data(Data(base64URLEncoded: data_root)!)
+        ]))
     }
 }
 
 public extension Transaction {
+    mutating func prepareChunks(data: Data) {
+        if self.chunks == nil && data.count > 0 {
+            self.chunks = generateTransactionChunks(data: data)
+            self.data_root = bufferTob64Url(buffer: self.chunks!.data_root)
+        }
+        
+        if self.chunks == nil && data.count == 0 {
+            self.chunks = Chunks(data_root: Data(), chunks: [Chunk](), proofs: [Proof]())
+            self.data_root = ""
+        }
+    }
 
     static func find(_ txId: TransactionId) async throws -> Transaction {
         let findEndpoint = Arweave.shared.request(for: .transaction(id: txId))
@@ -113,6 +141,7 @@ public extension Transaction {
         let target = Arweave.shared.request(for: .transactionData(id: txId))
         let response = try await HttpClient.request(target)
         return String(decoding: response.data, as: UTF8.self)
+        //return response.data.base64EncodedString()
     }
 
     static func status(of txId: TransactionId) async throws -> Transaction.Status {
@@ -150,7 +179,7 @@ public extension Transaction {
     }
 }
 
-extension Array where Element == Transaction.Tag {
+extension Array where Element == Tag {
     var combined: String {
         reduce(into: "") { str, tag in
             str += tag.name

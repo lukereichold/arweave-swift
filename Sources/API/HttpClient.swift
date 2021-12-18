@@ -2,7 +2,7 @@ import Foundation
 
 extension String: Error { }
 
-struct HttpResponse {
+public struct HttpResponse {
     let data: Data
     let statusCode: Int
 }

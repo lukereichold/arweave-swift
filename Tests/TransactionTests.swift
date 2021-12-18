@@ -105,7 +105,7 @@ final class TransactionTests: XCTestCase {
         let signed = try await transaction.sign(with: wallet)
         XCTAssertEqual(signed.quantity, "300000000000")
 
-        try await signed.commit()
+        _ = try await signed.commit()
     }
 
     func testSubmitDataTransaction() async throws {
@@ -118,7 +118,7 @@ final class TransactionTests: XCTestCase {
         XCTAssertEqual(signed.quantity, "0")
         XCTAssertEqual(signed.target, "")
 
-        try await signed.commit()
+        _ = try await signed.commit()
     }
 
     static var allTests = [

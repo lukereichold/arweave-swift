@@ -3,8 +3,8 @@ import Foundation
 extension String: Error { }
 
 public struct HttpResponse {
-    let data: Data
-    let statusCode: Int
+    public let data: Data
+    public let statusCode: Int
 }
 
 struct HttpClient {

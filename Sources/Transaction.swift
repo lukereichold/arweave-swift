@@ -9,6 +9,7 @@ public struct Chunks {
 
 public typealias TransactionId = String
 public typealias Base64EncodedString = String
+public typealias Base64URLEncodedString = String
 public struct Tag: Codable {
     public let name: String
     public let value: String
@@ -101,8 +102,7 @@ public extension Transaction {
     }
 
     mutating private func signatureBody() async throws -> Data {
-        prepareChunks(data: self.rawData)
-        let last_tx = try await Transaction.anchor()
+        try prepareChunks(data: self.rawData)
         
         return deepHash(data: DeepHashChunk.dataArray([
             DeepHashChunk.data(format.description.data(using: .utf8)!),
@@ -119,9 +119,9 @@ public extension Transaction {
 }
 
 public extension Transaction {
-    mutating func prepareChunks(data: Data) {
+    mutating func prepareChunks(data: Data) throws -> Void {
         if self.chunks == nil && data.count > 0 {
-            self.chunks = generateTransactionChunks(data: data)
+            self.chunks = try generateTransactionChunks(data: data)
             self.data_root = bufferTob64Url(buffer: self.chunks!.data_root)
         }
         
@@ -137,11 +137,12 @@ public extension Transaction {
         return try JSONDecoder().decode(Transaction.self, from: response.data)
     }
 
-    static func data(for txId: TransactionId) async throws -> Base64EncodedString {
+    static func data(for txId: TransactionId) async throws -> Base64URLEncodedString {
         let target = Arweave.shared.request(for: .transactionData(id: txId))
         let response = try await HttpClient.request(target)
-        return String(decoding: response.data, as: UTF8.self)
+        //return String(decoding: response.data, as: UTF8.self)
         //return response.data.base64EncodedString()
+        return response.data.base64URLEncodedString()
     }
 
     static func status(of txId: TransactionId) async throws -> Transaction.Status {

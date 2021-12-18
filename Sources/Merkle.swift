@@ -7,6 +7,7 @@
 
 import Foundation
 import CryptoKit
+import zlib
 
 struct Chunk {
     let dataHash: Data
@@ -14,15 +15,15 @@ struct Chunk {
     let maxByteRange: Int
 }
 
-class BranchNode: MerkelNode {
+class BranchNode {
     var id: Data
-    var type: BranchOrLeaf = BranchOrLeaf.branch
+    var type: MerkleNode? = nil
     let byteRange: Int
     var maxByteRange: Int
-    let leftChild: MerkelNode?
-    let rightChild: MerkelNode?
+    let leftChild: MerkleNode?
+    let rightChild: MerkleNode?
     
-    init(id: Data, byteRange: Int, maxByteRange: Int, leftChild: MerkelNode? = nil, rightChild: MerkelNode? = nil) {
+    init(id: Data, byteRange: Int, maxByteRange: Int, leftChild: MerkleNode? = nil, rightChild: MerkleNode? = nil) {
         self.id = id
         self.byteRange = byteRange
         self.maxByteRange = maxByteRange
@@ -31,10 +32,10 @@ class BranchNode: MerkelNode {
     }
 }
 
-class LeafNode: MerkelNode {
+class LeafNode {
     var id: Data
     let dataHash: Data
-    var type: BranchOrLeaf = BranchOrLeaf.leaf
+    var type: MerkleNode? = nil
     let minByteRange: Int
     var maxByteRange: Int
     
@@ -46,18 +47,14 @@ class LeafNode: MerkelNode {
     }
 }
 
-protocol MerkelNode {
-    var id: Data { get set }
-    var maxByteRange: Int { get set }
-    var type: BranchOrLeaf { get set }
+enum MerkleNode {
+    case branchNode(BranchNode)
+    case leafNode(LeafNode)
 }
 
-enum BranchOrLeaf {
-    case branch
-    case leaf
-}
 enum BranchOrLeafError: Error {
     case UnknownNodeType
+    case LeftCannotBeLeafWhenRightNil
 }
 
 struct Proof {
@@ -101,12 +98,14 @@ func generateLeaves(chunks: [Chunk]) -> [LeafNode] {
         idData.append(chunk.dataHash)
         idData.append(intToBuffer(note: chunk.maxByteRange))
         
-        return LeafNode(
+        let leaf = LeafNode(
             id: hashId(data: idData),
             dataHash: chunk.dataHash,
             minByteRange: chunk.minByteRange,
             maxByteRange: chunk.maxByteRange
         )
+        leaf.type = MerkleNode.leafNode(leaf)
+        return leaf
     }
 }
 
@@ -129,23 +128,28 @@ func intToBuffer(note: Int) -> Data {
 }
 
 // of leafs or branches
-func buildLayers(nodes: [MerkelNode], level: Int = 0) -> MerkelNode {
+func buildLayers(nodes: [MerkleNode], level: Int = 0) throws -> MerkleNode {
     if nodes.count < 2 {
-        return hashBranch(left: nodes[0])
+        return try hashBranch(left: nodes[0])
     }
     
-    var nextLayer = [MerkelNode]()
+    var nextLayer = [MerkleNode]()
+    
     for i in stride(from: 0, to: nodes.count, by: 2) {
-        nextLayer.append(hashBranch(left: nodes[i], right: nodes[i + 1]))
+        if i + 1 < nodes.count {
+            nextLayer.append(try hashBranch(left: nodes[i], right: nodes[i + 1]))
+        }
     }
     
-    return buildLayers(nodes: nextLayer, level: level + 1)
+    return try buildLayers(nodes: nextLayer, level: level + 1)
 }
 
-func generateTransactionChunks(data: Data) -> Chunks {
+func generateTransactionChunks(data: Data) throws -> Chunks {
     var chunks = chunkData(data: data)
     let leaves = generateLeaves(chunks: chunks)
-    let root = buildLayers(nodes: leaves)
+    let root = try buildLayers(nodes: leaves.map { leaf in
+        leaf.type!
+    })
     var proofs = generateProofs(root: root)
     
     if chunks.count > 0 {
@@ -156,10 +160,17 @@ func generateTransactionChunks(data: Data) -> Chunks {
         }
     }
     
-    return Chunks(data_root: root.id, chunks: chunks, proofs: proofs)
+    var rootId: Data?
+    switch root {
+    case .leafNode(let leaf):
+        rootId = leaf.id
+    case .branchNode(let branch):
+        rootId = branch.id
+    }
+    return Chunks(data_root: rootId!, chunks: chunks, proofs: proofs)
 }
 
-func generateProofs(root: MerkelNode) -> [Proof] {
+func generateProofs(root: MerkleNode) -> [Proof] {
     var proofs: [Proof] = [Proof]()
     do {
         proofs = try resolveBranchProofs(node: root)
@@ -169,26 +180,32 @@ func generateProofs(root: MerkelNode) -> [Proof] {
     return proofs
 }
 
-func resolveBranchProofs(node: MerkelNode, proof: Data = Data(), depth: Int = 0) throws -> [Proof] {
-    if node.type == BranchOrLeaf.leaf {
-        let dataHash = (node as! LeafNode).dataHash
+func resolveBranchProofs(node: MerkleNode, proof: Data = Data(), depth: Int = 0) throws -> [Proof] {
+    if case .leafNode(let leaf) = node {
+        let dataHash = leaf.dataHash
         return [
-            Proof(offset: node.maxByteRange - 1, proof: concatBuffers(buffers: [proof, dataHash, intToBuffer(note: node.maxByteRange)]))
+            Proof(offset: leaf.maxByteRange - 1, proof: concatBuffers(buffers: [proof, dataHash, intToBuffer(note: leaf.maxByteRange)]))
         ]
     }
     
-    if node.type == BranchOrLeaf.branch {
-        let branch = (node as! BranchNode)
-        
+    if case .branchNode(let branch) = node {
         var buffers = [
             proof,
             intToBuffer(note: branch.byteRange)
         ]
         if let leftChild = branch.leftChild {
-            buffers.append(leftChild.id)
+            if case .leafNode(let leftLeaf) = leftChild {
+                buffers.append(leftLeaf.id)
+            } else if case .branchNode(let leftBranch) = leftChild {
+                buffers.append(leftBranch.id)
+            }
         }
         if let rightChild = branch.rightChild {
-            buffers.append(rightChild.id)
+            if case .leafNode(let rightLeaf) = rightChild {
+                buffers.append(rightLeaf.id)
+            } else if case .branchNode(let rightBranch) = rightChild {
+                buffers.append(rightBranch.id)
+            }
         }
         let partialProof = concatBuffers(buffers: buffers)
         
@@ -205,28 +222,47 @@ func resolveBranchProofs(node: MerkelNode, proof: Data = Data(), depth: Int = 0)
     throw BranchOrLeafError.UnknownNodeType
 }
 
-func hashBranch(left: MerkelNode, right: MerkelNode? = nil) -> MerkelNode {
+func hashBranch(left: MerkleNode, right: MerkleNode? = nil) throws -> MerkleNode {
     if right == nil {
-        return BranchNode(
-                id: hashId(data: [
-                hashId(data: [left.id]),
-                hashId(data: [intToBuffer(note: left.maxByteRange)]),
+        switch left {
+        case .leafNode(_):
+            throw BranchOrLeafError.LeftCannotBeLeafWhenRightNil
+        case .branchNode(let branch):
+            return branch.type!
+        }
+    } else {
+        var leftLeaf: LeafNode?
+        var leftBranch: BranchNode?
+        var rightLeaf: LeafNode?
+        var rightBranch: BranchNode?
+        
+        switch left {
+        case .leafNode(let leaf):
+            leftLeaf = leaf
+        case .branchNode(let branch):
+            leftBranch = branch
+        }
+        
+        switch right! {
+        case .leafNode(let leaf):
+            rightLeaf = leaf
+        case .branchNode(let branch):
+            rightBranch = branch
+        }
+        
+        let branch = BranchNode(
+            id: hashId(data: [
+                hashId(data: [leftLeaf != nil ? leftLeaf!.id : leftBranch!.id]),
+                hashId(data: [rightLeaf != nil ? rightLeaf!.id : rightBranch!.id]),
+                hashId(data: [intToBuffer(note: leftLeaf != nil ? leftLeaf!.maxByteRange : leftBranch!.maxByteRange)]),
             ]),
-            byteRange: left.maxByteRange,
-            maxByteRange: left.maxByteRange,
-            leftChild: left)
+            byteRange: leftLeaf != nil ? leftLeaf!.maxByteRange : leftBranch!.maxByteRange,
+            maxByteRange: rightLeaf != nil ? rightLeaf!.maxByteRange : rightBranch!.maxByteRange,
+            leftChild: left,
+            rightChild: right
+        )
+        branch.type = MerkleNode.branchNode(branch)
+        
+        return branch.type!
     }
-    
-    let branch = BranchNode(
-        id: hashId(data: [
-            hashId(data: [left.id]),
-            hashId(data: [right!.id]),
-            hashId(data: [intToBuffer(note: left.maxByteRange)]),
-        ]),
-        byteRange: left.maxByteRange,
-        maxByteRange: right!.maxByteRange,
-        leftChild: left,
-        rightChild: right
-    )
-    return branch
 }

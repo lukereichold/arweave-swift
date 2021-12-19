@@ -129,16 +129,15 @@ func intToBuffer(note: Int) -> Data {
 
 // of leafs or branches
 func buildLayers(nodes: [MerkleNode], level: Int = 0) throws -> MerkleNode {
-    if nodes.count < 2 {
+    let nodesCount = nodes.count
+    if nodesCount < 2 {
         return try hashBranch(left: nodes[0])
     }
     
     var nextLayer = [MerkleNode]()
     
-    for i in stride(from: 0, to: nodes.count, by: 2) {
-        if i + 1 < nodes.count {
-            nextLayer.append(try hashBranch(left: nodes[i], right: nodes[i + 1]))
-        }
+    for i in stride(from: 0, to: nodesCount, by: 2) {
+        nextLayer.append(try hashBranch(left: nodes[i], right: i + 1 < nodesCount ? nodes[i + 1] : nil))        
     }
     
     return try buildLayers(nodes: nextLayer, level: level + 1)

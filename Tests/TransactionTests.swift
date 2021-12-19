@@ -7,7 +7,7 @@ final class TransactionTests: XCTestCase {
     static var wallet: Wallet?
 
     class func initWalletFromKeyfile() {
-        guard let keyPath = Bundle.module.url(forResource: "test-key", withExtension: "json"),
+        guard let keyPath = Bundle.module.url(forResource: "dave-key", withExtension: "json"),
               let data = try? Data(contentsOf: keyPath)
         else { return }
         

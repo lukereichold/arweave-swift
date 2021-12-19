@@ -54,7 +54,6 @@ enum MerkleNode {
 
 enum BranchOrLeafError: Error {
     case UnknownNodeType
-    case LeftCannotBeLeafWhenRightNil
 }
 
 struct Proof {
@@ -137,7 +136,7 @@ func buildLayers(nodes: [MerkleNode], level: Int = 0) throws -> MerkleNode {
     var nextLayer = [MerkleNode]()
     
     for i in stride(from: 0, to: nodesCount, by: 2) {
-        nextLayer.append(try hashBranch(left: nodes[i], right: i + 1 < nodesCount ? nodes[i + 1] : nil))        
+        nextLayer.append(try hashBranch(left: nodes[i], right: i + 1 < nodesCount ? nodes[i + 1] : nil))
     }
     
     return try buildLayers(nodes: nextLayer, level: level + 1)
@@ -224,8 +223,10 @@ func resolveBranchProofs(node: MerkleNode, proof: Data = Data(), depth: Int = 0)
 func hashBranch(left: MerkleNode, right: MerkleNode? = nil) throws -> MerkleNode {
     if right == nil {
         switch left {
-        case .leafNode(_):
-            throw BranchOrLeafError.LeftCannotBeLeafWhenRightNil
+        case .leafNode(let leaf):
+            let branch = BranchNode(id: leaf.id, byteRange: leaf.maxByteRange, maxByteRange: leaf.maxByteRange, leftChild: nil, rightChild: nil)
+            branch.type = MerkleNode.branchNode(branch)
+            return branch.type!
         case .branchNode(let branch):
             return branch.type!
         }

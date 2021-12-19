@@ -7,15 +7,14 @@ final class TransactionTests: XCTestCase {
     static var wallet: Wallet?
 
     class func initWalletFromKeyfile() {
-        guard let keyPath = Bundle.module.url(forResource: "dave-key", withExtension: "json"),
-              let data = try? Data(contentsOf: keyPath)
-        else { return }
+        let keyPath = Bundle.module.url(forResource: "test-key", withExtension: "json")
+        let data = try? Data(contentsOf: keyPath!)
         
-        TransactionTests.wallet = try? Wallet(jwkFileData: data)
+        TransactionTests.wallet = try? Wallet(jwkFileData: data!)
         XCTAssertNotNil(TransactionTests.wallet)
     }
 
-    override class func setUp() {
+    override func setUpWithError() throws {
         super.setUp()
         TransactionTests.initWalletFromKeyfile()
     }

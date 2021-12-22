@@ -103,19 +103,24 @@ public extension Transaction {
 
     mutating private func signatureBody() async throws -> Data {
         try prepareChunks(data: self.rawData)
+        let tagsList = tags.map { (tag: Tag) in
+            DeepHashChunk.dataArray([DeepHashChunk.data(tag.name.data(using: .utf8)!), DeepHashChunk.data(tag.value.data(using: .utf8)!)])
+        }
         
-        return deepHash(data: DeepHashChunk.dataArray([
-            DeepHashChunk.data(format.description.data(using: .utf8)!),
+        let hash = deepHash(data: DeepHashChunk.dataArray([
+            DeepHashChunk.data("\(format)".data(using: .utf8)!),
             DeepHashChunk.data(Data(base64URLEncoded: owner)!),
             DeepHashChunk.data(Data(base64URLEncoded: target)!),
             DeepHashChunk.data(quantity.data(using: .utf8)!),
             DeepHashChunk.data(reward.data(using: .utf8)!),
             DeepHashChunk.data(Data(base64URLEncoded: last_tx)!),
-            DeepHashChunk.data(tags.combined.data(using: .utf8)!),
+            DeepHashChunk.dataArray(tagsList),
             DeepHashChunk.data(data_size.data(using: .utf8)!),
             DeepHashChunk.data(Data(base64URLEncoded: data_root)!)
         ]))
-    }
+        print("signature hash: \(hash)")
+        return hash
+    }    
 }
 
 public extension Transaction {
@@ -144,7 +149,7 @@ public extension Transaction {
         //return response.data.base64EncodedString()
         return response.data.base64URLEncodedString()
     }
-
+       
     static func status(of txId: TransactionId) async throws -> Transaction.Status {
 
         let target = Arweave.shared.request(for: .transactionStatus(id: txId))

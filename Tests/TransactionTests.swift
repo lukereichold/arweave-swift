@@ -7,15 +7,14 @@ final class TransactionTests: XCTestCase {
     static var wallet: Wallet?
 
     class func initWalletFromKeyfile() {
-        guard let keyPath = Bundle.module.url(forResource: "test-key", withExtension: "json"),
-              let data = try? Data(contentsOf: keyPath)
-        else { return }
+        let keyPath = Bundle.module.url(forResource: "test-key", withExtension: "json")
+        let data = try? Data(contentsOf: keyPath!)
         
-        TransactionTests.wallet = try? Wallet(jwkFileData: data)
+        TransactionTests.wallet = try? Wallet(jwkFileData: data!)
         XCTAssertNotNil(TransactionTests.wallet)
     }
 
-    override class func setUp() {
+    override func setUpWithError() throws {
         super.setUp()
         TransactionTests.initWalletFromKeyfile()
     }
@@ -105,7 +104,7 @@ final class TransactionTests: XCTestCase {
         let signed = try await transaction.sign(with: wallet)
         XCTAssertEqual(signed.quantity, "300000000000")
 
-        try await signed.commit()
+        _ = try await signed.commit()
     }
 
     func testSubmitDataTransaction() async throws {
@@ -118,7 +117,7 @@ final class TransactionTests: XCTestCase {
         XCTAssertEqual(signed.quantity, "0")
         XCTAssertEqual(signed.target, "")
 
-        try await signed.commit()
+        _ = try await signed.commit()
     }
 
     static var allTests = [

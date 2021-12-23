@@ -23,6 +23,7 @@ struct HttpClient {
         
         if case .transactionStatus = target.route {}
         else if statusCode != 200 {
+            print("\(httpResponse.debugDescription)")
             throw "Bad response code \(statusCode)"
         }
         

@@ -34,6 +34,33 @@ public extension Transaction {
     }
 }
 
+public struct DecodableTransaction: Codable {
+    public var format = 2
+    public var id: TransactionId = ""
+    public var last_tx: TransactionId = ""
+    public var owner: String = ""
+    public var tags = [Tag]()
+    public var target: String = ""
+    public var quantity: String = "0"
+    public var data: String? = "" // do not remove optional. decode will fail if data comes back empty
+    public var data_root: String = ""
+    public var data_size: Int = 0
+    public var reward: String = ""
+    public var signature: String = ""
+    public var chunks: Chunks? = nil
+    
+    public var content_type: String = ""
+    public var height: Int = 0
+    public var owner_address: String = ""
+    public var parent: String? = nil
+    public var block: String = ""
+    public var created_at: String = ""
+    
+    private enum CodingKeys: String, CodingKey {
+        case format, id, last_tx, owner, tags, target, quantity, data, data_root, data_size, reward, signature, content_type, height, owner_address, parent, block, created_at
+    }
+}
+
 public struct Transaction: Codable {
     public var format = 2
     public var id: TransactionId = ""
@@ -48,7 +75,7 @@ public struct Transaction: Codable {
     public var reward: String = ""
     public var signature: String = ""
     public var chunks: Chunks? = nil
-
+        
     private enum CodingKeys: String, CodingKey {
         case format, id, last_tx, owner, tags, target, quantity, data, data_root, data_size, reward, signature
     }
@@ -136,10 +163,11 @@ public extension Transaction {
         }
     }
 
-    static func find(_ txId: TransactionId) async throws -> Transaction {
+    static func find(_ txId: TransactionId) async throws -> DecodableTransaction {
         let findEndpoint = Arweave.shared.request(for: .transaction(id: txId))
         let response = try await HttpClient.request(findEndpoint)
-        return try JSONDecoder().decode(Transaction.self, from: response.data)
+        print("\(String(describing: String(data: response.data, encoding: .utf8)))")
+        return try JSONDecoder().decode(DecodableTransaction.self, from: response.data)
     }
 
     static func data(for txId: TransactionId) async throws -> Base64URLEncodedString {

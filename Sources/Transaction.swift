@@ -24,12 +24,14 @@ public extension Transaction {
 
     struct PriceRequest {
         
-        public init(bytes: Int = 0, target: Address? = nil) {
-            self.bytes = bytes
+        public init(data: Data, target: Address? = nil) {
+            self.bytes = data.count
+            self.bytesBase64URLEncoded = data.base64URLEncodedString()
             self.target = target
         }
         
         public var bytes: Int = 0
+        public var bytesBase64URLEncoded : String
         public var target: Address?
     }
 }
@@ -82,7 +84,7 @@ public struct Transaction: Codable {
     }
 
     public var priceRequest: PriceRequest {
-        PriceRequest(bytes: rawData.count, target: Address(address: target))
+        PriceRequest(data: rawData, target: Address(address: target))
     }
 
     public var rawData = Data()

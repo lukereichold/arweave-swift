@@ -34,6 +34,7 @@ public extension Transaction {
     }
 }
 
+// needed this as decodes fail without these
 public struct DecodableTransaction: Codable {
     public var format = 2
     public var id: TransactionId = ""
@@ -118,7 +119,7 @@ public extension Transaction {
             .base64URLEncodedString()
         return tx
     }
-
+    
     func commit() async throws -> HttpResponse {
         guard !signature.isEmpty else {
             throw "Missing signature on transaction."
@@ -131,7 +132,7 @@ public extension Transaction {
     mutating private func signatureBody() async throws -> Data {
         try prepareChunks(data: self.rawData)
         let tagsList = tags.map { (tag: Tag) in
-            DeepHashChunk.dataArray([DeepHashChunk.data(tag.name.data(using: .utf8)!), DeepHashChunk.data(tag.value.data(using: .utf8)!)])
+            DeepHashChunk.dataArray([DeepHashChunk.data(Data(base64URLEncoded: tag.name)!), DeepHashChunk.data(Data(base64URLEncoded: tag.value)!)])
         }
         
         let hash = deepHash(data: DeepHashChunk.dataArray([
@@ -147,7 +148,7 @@ public extension Transaction {
         ]))
         print("signature hash: \(hash)")
         return hash
-    }    
+    }
 }
 
 public extension Transaction {

@@ -61,6 +61,16 @@ struct Proof {
     let proof: Data
 }
 
+enum ProofType {
+    case item(Proof)
+    case array([Proof])
+}
+
+enum HashDataType {
+    case data(Data)
+    case dataArray([Data])
+}
+
 let MAX_CHUNK_SIZE = 256 * 1024
 let MIN_CHUNK_SIZE = 32 * 1024
 let NOTE_SIZE = 32
@@ -77,14 +87,14 @@ func chunkData(data: Data) -> [Chunk] {
         
         let nextChunkSize = rest.count - MAX_CHUNK_SIZE
         if (nextChunkSize > 0 && nextChunkSize < MIN_CHUNK_SIZE) {
-            chunkSize = Int(Double(rest.count / 2).rounded())
+            chunkSize = Int(ceil(Double(rest.count / 2)))
         }
         
         let chunk = rest.subdata(in: 0..<chunkSize)
         let dataHash = SHA256.hash(data: chunk)
         cursor += chunk.count
         chunks.append(Chunk(dataHash: dataHash.data, minByteRange: cursor - chunk.count, maxByteRange: cursor))
-        rest = rest.subdata(in: (chunkSize <= 0 ? 0 : chunkSize - 1)..<rest.count)
+        rest = rest.subdata(in: chunkSize..<rest.count)
     }
     
     chunks.append(Chunk(dataHash: SHA256.hash(data: rest).data, minByteRange: cursor, maxByteRange: cursor + rest.count))
@@ -93,12 +103,8 @@ func chunkData(data: Data) -> [Chunk] {
 
 func generateLeaves(chunks: [Chunk]) -> [LeafNode] {
     return chunks.map { chunk in
-        var idData = [Data]()
-        idData.append(chunk.dataHash)
-        idData.append(intToBuffer(note: chunk.maxByteRange))
-        
         let leaf = LeafNode(
-            id: hashId(data: idData),
+            id: hash(data: HashDataType.dataArray([hash(data: HashDataType.data(chunk.dataHash)), hash(data: HashDataType.data(intToBuffer(note: chunk.maxByteRange)))])),
             dataHash: chunk.dataHash,
             minByteRange: chunk.minByteRange,
             maxByteRange: chunk.maxByteRange
@@ -108,9 +114,15 @@ func generateLeaves(chunks: [Chunk]) -> [LeafNode] {
     }
 }
 
-func hashId(data: [Data]) -> Data {
-    let data = concatBuffers(buffers: data)
-    return Data(SHA256.hash(data: data))
+func hash(data: HashDataType) -> Data {
+    switch data {
+    case .dataArray(let dataArray):
+        let localData = concatBuffers(buffers: dataArray)
+        return Data(SHA256.hash(data: localData))
+    case .data(let dataItem):
+        let localData = concatBuffers(buffers: [dataItem])
+        return Data(SHA256.hash(data: localData))
+    }
 }
 
 func intToBuffer(note: Int) -> Data {
@@ -130,7 +142,7 @@ func intToBuffer(note: Int) -> Data {
 func buildLayers(nodes: [MerkleNode], level: Int = 0) throws -> MerkleNode {
     let nodesCount = nodes.count
     if nodesCount < 2 {
-        return try hashBranch(left: nodes[0])
+        return nodes[0]
     }
     
     var nextLayer = [MerkleNode]()
@@ -169,27 +181,29 @@ func generateTransactionChunks(data: Data) throws -> Chunks {
 }
 
 func generateProofs(root: MerkleNode) -> [Proof] {
-    var proofs: [Proof] = [Proof]()
     do {
-        proofs = try resolveBranchProofs(node: root)
+        let proofs = try resolveBranchProofs(node: root)
+        switch proofs {
+        case .item(let proofItem):
+            return [proofItem]
+        case .array(let proofArray):
+            return proofArray
+        }
     } catch {
         print("failed to resolve branch proofs \(error)")
     }
-    return proofs
+    return []
 }
 
-func resolveBranchProofs(node: MerkleNode, proof: Data = Data(), depth: Int = 0) throws -> [Proof] {
-    if case .leafNode(let leaf) = node {
-        let dataHash = leaf.dataHash
-        return [
-            Proof(offset: leaf.maxByteRange - 1, proof: concatBuffers(buffers: [proof, dataHash, intToBuffer(note: leaf.maxByteRange)]))
-        ]
-    }
-    
-    if case .branchNode(let branch) = node {
+func resolveBranchProofs(node: MerkleNode, proof: Data = Data(), depth: Int = 0) throws -> ProofType {
+    switch node {
+    case .leafNode(let leaf):
+        return ProofType.item(
+            Proof(offset: leaf.maxByteRange - 1, proof: concatBuffers(buffers: [proof, leaf.dataHash, intToBuffer(note: leaf.maxByteRange)]))
+        )
+    case .branchNode(let branch):
         var buffers = [
-            proof,
-            intToBuffer(note: branch.byteRange)
+            proof
         ]
         if let leftChild = branch.leftChild {
             if case .leafNode(let leftLeaf) = leftChild {
@@ -205,19 +219,24 @@ func resolveBranchProofs(node: MerkleNode, proof: Data = Data(), depth: Int = 0)
                 buffers.append(rightBranch.id)
             }
         }
+        buffers.append(intToBuffer(note: branch.byteRange))
         let partialProof = concatBuffers(buffers: buffers)
         
-        var resolvedProofs = [[Proof]]()
+        var resolvedProofs = [Proof]()
         if let leftChild = branch.leftChild {
-            resolvedProofs.append(try resolveBranchProofs(node: leftChild, proof: partialProof, depth: depth + 1))
+            let result = try resolveBranchProofs(node: leftChild, proof: partialProof, depth: depth + 1)
+            if case .item(let item) = result {
+                resolvedProofs.append(item)
+            }
         }
         if let rightChild = branch.rightChild {
-            resolvedProofs.append(try resolveBranchProofs(node: rightChild, proof: partialProof, depth: depth + 1))
+            let result = try resolveBranchProofs(node: rightChild, proof: partialProof, depth: depth + 1)
+            if case .item(let item) = result {
+                resolvedProofs.append(item)
+            }
         }
-        return Array(resolvedProofs.joined())
+        return ProofType.array(resolvedProofs)
     }
-    
-    throw BranchOrLeafError.UnknownNodeType
 }
 
 func hashBranch(left: MerkleNode, right: MerkleNode? = nil) throws -> MerkleNode {
@@ -251,11 +270,11 @@ func hashBranch(left: MerkleNode, right: MerkleNode? = nil) throws -> MerkleNode
         }
         
         let branch = BranchNode(
-            id: hashId(data: [
-                hashId(data: [leftLeaf != nil ? leftLeaf!.id : leftBranch!.id]),
-                hashId(data: [rightLeaf != nil ? rightLeaf!.id : rightBranch!.id]),
-                hashId(data: [intToBuffer(note: leftLeaf != nil ? leftLeaf!.maxByteRange : leftBranch!.maxByteRange)]),
-            ]),
+            id: hash(data: HashDataType.dataArray([
+                hash(data: leftLeaf != nil ? HashDataType.data(leftLeaf!.id) : HashDataType.data(leftBranch!.id)),
+                hash(data: rightLeaf != nil ? HashDataType.data(rightLeaf!.id) : HashDataType.data(rightBranch!.id)),
+                hash(data: HashDataType.data(intToBuffer(note: leftLeaf != nil ? leftLeaf!.maxByteRange : leftBranch!.maxByteRange))),
+            ])),
             byteRange: leftLeaf != nil ? leftLeaf!.maxByteRange : leftBranch!.maxByteRange,
             maxByteRange: rightLeaf != nil ? rightLeaf!.maxByteRange : rightBranch!.maxByteRange,
             leftChild: left,

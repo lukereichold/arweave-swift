@@ -22,10 +22,6 @@ struct HttpClient {
         let statusCode = httpResponse?.statusCode ?? 0
         
         if case .transactionStatus = target.route {}
-        else if statusCode != 200 {
-            print("\(httpResponse.debugDescription)")
-            throw "Bad response code \(statusCode)"
-        }
         
         return HttpResponse(data: data, statusCode: statusCode)
     }

@@ -36,32 +36,9 @@ public extension Transaction {
     }
 }
 
-// needed this as decodes fail without these
-public struct DecodableTransaction: Codable {
-    public var format = 2
-    public var id: TransactionId = ""
-    public var last_tx: TransactionId = ""
-    public var owner: String = ""
-    public var tags = [Tag]()
-    public var target: String = ""
-    public var quantity: String = "0"
-    public var data: String? = "" // do not remove optional. decode will fail if data comes back empty
-    public var data_root: String = ""
-    public var data_size: Int = 0
-    public var reward: String = ""
-    public var signature: String = ""
-    public var chunks: Chunks? = nil
-    
-    public var content_type: String = ""
-    public var height: Int = 0
-    public var owner_address: String = ""
-    public var parent: String? = nil
-    public var block: String = ""
-    public var created_at: String = ""
-    
-    private enum CodingKeys: String, CodingKey {
-        case format, id, last_tx, owner, tags, target, quantity, data, data_root, data_size, reward, signature, content_type, height, owner_address, parent, block, created_at
-    }
+public enum TransactionResult {
+    case transaction(Transaction)
+    case statusMsg(String?)
 }
 
 public struct Transaction: Codable {
@@ -88,6 +65,7 @@ public struct Transaction: Codable {
     }
 
     public var rawData = Data()
+    static let jsonDecoder = JSONDecoder()
 }
 
 public extension Transaction {
@@ -158,6 +136,7 @@ public extension Transaction {
         if self.chunks == nil && data.count > 0 {
             self.chunks = try generateTransactionChunks(data: data)
             self.data_root = bufferTob64Url(buffer: self.chunks!.data_root)
+            print("data_root \(self.data_root)")
         }
         
         if self.chunks == nil && data.count == 0 {
@@ -166,19 +145,29 @@ public extension Transaction {
         }
     }
 
-    static func find(_ txId: TransactionId) async throws -> DecodableTransaction {
-        let findEndpoint = Arweave.shared.request(for: .transaction(id: txId))
-        let response = try await HttpClient.request(findEndpoint)
-        print("\(String(describing: String(data: response.data, encoding: .utf8)))")
-        return try JSONDecoder().decode(DecodableTransaction.self, from: response.data)
+    // note: return type removed because the result of this call is not always a decodable Transaction
+    // simply throwing does not help developer get at result, which may be valid and not exception for example "Pending" is valid but not decodable.
+    static func find(_ txId: TransactionId) async -> TransactionResult {              
+        do {
+            let findEndpoint = Arweave.shared.request(for: .transaction(id: txId))
+            let response = try await HttpClient.request(findEndpoint)
+            print(String(data: response.data, encoding: .utf8) ?? "")
+            if response.statusCode == 200 {
+                return TransactionResult.transaction(try jsonDecoder.decode(Transaction.self, from: response.data))
+            } else {
+                return TransactionResult.statusMsg(String(data: response.data, encoding: .utf8) ?? "")
+            }
+        } catch {
+            return TransactionResult.statusMsg("Failed to find transaction \(txId)")
+        }
     }
 
-    static func data(for txId: TransactionId) async throws -> Base64URLEncodedString {
+    static func data(for txId: TransactionId) async throws -> Data {
         let target = Arweave.shared.request(for: .transactionData(id: txId))
         let response = try await HttpClient.request(target)
         //return String(decoding: response.data, as: UTF8.self)
         //return response.data.base64EncodedString()
-        return response.data.base64URLEncodedString()
+        return response.data
     }
        
     static func status(of txId: TransactionId) async throws -> Transaction.Status {

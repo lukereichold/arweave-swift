@@ -120,8 +120,7 @@ func hash(data: HashDataType) -> Data {
         let localData = concatBuffers(buffers: dataArray)
         return Data(SHA256.hash(data: localData))
     case .data(let dataItem):
-        let localData = concatBuffers(buffers: [dataItem])
-        return Data(SHA256.hash(data: localData))
+        return Data(SHA256.hash(data: dataItem))
     }
 }
 

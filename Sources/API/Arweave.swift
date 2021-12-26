@@ -1,5 +1,7 @@
 import Foundation
 
+let MIN_BYTE_SIZE = 256 * 1024
+
 public struct Arweave {
     static let shared = Arweave()
     private init() {}
@@ -42,7 +44,7 @@ extension Arweave {
             case let .walletBalance(walletAddress):
                 return "/wallet/\(walletAddress)/balance"
             case let .reward(request):
-                var path = "/price/\(String(request.bytes))"
+                var path = "/price/\(String(request.bytesBase64URLEncoded.lengthOfBytes(using: .utf8) < MIN_BYTE_SIZE ? MIN_BYTE_SIZE : request.bytesBase64URLEncoded.lengthOfBytes(using: .utf8)))" // the new fee structure demands a minimum payout
                 if let target = request.target {
                     path.append("/\(target.address)")
                 }

@@ -26,6 +26,6 @@ let package = Package(
             name: "ArweaveTests",
             dependencies: ["Arweave"],
             path: "Tests",
-            resources: [.process("test-key.json")])
+            resources: [.process("test-key.json"), .process("dave-key")])
     ]
 )

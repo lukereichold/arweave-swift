@@ -2,9 +2,9 @@ import Foundation
 
 extension String: Error { }
 
-struct HttpResponse {
-    let data: Data
-    let statusCode: Int
+public struct HttpResponse {
+    public let data: Data
+    public let statusCode: Int
 }
 
 struct HttpClient {
@@ -22,9 +22,6 @@ struct HttpClient {
         let statusCode = httpResponse?.statusCode ?? 0
         
         if case .transactionStatus = target.route {}
-        else if statusCode != 200 {
-            throw "Bad response code \(statusCode)"
-        }
         
         return HttpResponse(data: data, statusCode: statusCode)
     }
